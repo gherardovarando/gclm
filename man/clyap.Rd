@@ -5,6 +5,7 @@
 \alias{clyap2}
 \alias{gradllB}
 \alias{jacllB}
+\alias{fproxgradB}
 \title{Solve continuous-time Lyapunov/Sylvester equations
 \code{clyap} solve the continuous-time Lyapunov equations
 \deqn{AXE' + EXA'+Q=0.}}
@@ -16,6 +17,9 @@ clyap2(A, Q, WKV, E)
 gradllB(A, E, D, S, WKV, IX = NULL)
 
 jacllB(A, E, S, WKV)
+
+fproxgradB(Sigma, B, C = diag(ncol(Sigma)), eps = 0.01, alpha = 0.5,
+  maxIter = 1000, lambda = 0, all = FALSE)
 }
 \arguments{
 \item{A}{Square matrix}
@@ -40,6 +44,5 @@ Solve continuous-time Lyapunov/Sylvester equations
 \code{clyap} use \code{BKDIS} from ALGORITHM 705, COLLECTED ALGORITHMS FROM ACM
 }
 \examples{
-
 
 }
