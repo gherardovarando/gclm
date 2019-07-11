@@ -58,7 +58,6 @@ mll <- function(P, S){
 #' @param S covariance matrix
 #' @param C noise matrix
 #'
-#' @importFrom lyapunov clyap
 #' @export
 mllB <- function(B, S, C = diag(nrow(B))){
   P <- solve(lyapunov::clyap(A = B, Q = C))
@@ -84,7 +83,6 @@ mllB <- function(B, S, C = diag(nrow(B))){
 #'   -  \code{mean} the mean vector of the invariant distribution
 #'
 #'
-#' @importFrom lyapunov clyap
 #' @importFrom MASS mvrnorm
 #'
 #' @export
@@ -92,30 +90,12 @@ rOUinv <- function(n = 1, B,
                 D = diag(nrow = nrow(B), ncol = ncol(B)),
                 mean = rep(0, nrow(B)) ){
   C <- D %*% t(D)
-  Sigma <- lyapunov::clyap(A = B, Q = C)
-  S <- MASS::mvrnorm(n = n, Sigma = Sigma, mu = mean)
+  Sigma <- clyap(A = B, Q = C)
+  S <- mvrnorm(n = n, Sigma = Sigma, mu = mean)
   return(list(data = S, Sigma = Sigma, C = C, B = B, mean = mean))
 }
 
 
-#' Random Stable (Hurwitz) matrix
-#'
-#' Generate a random stable matrix, that is with all
-#' eigenvalues with strict negative real part
-#'
-#' @param p integer, the dimension of the desired matrix
-#' @param d fraction of non-zero entries
-#'
-#' @importFrom gmat chol_mh
-#' @export
-rHurwitz <- function(p = 1, d = 1){
-  ## each stable matrix is the product of a SPD and a 
-  ## generalized negative definite
-  S <- gmat::chol_mh(N = 1, p = p, d = d)[,,1]
-  An <- rSkewSymm(p = p)
-  Sy <- - gmat::chol_mh(N = 1, p = p, d = d)[,,1]
-  return( (An + Sy) %*% S)
-}
 
 
 #' Generate a random skew-symmetric matrix
@@ -174,7 +154,6 @@ rStableMetzler <- function(p = 1, d = 1, lower = FALSE,
 #'
 #' @return A stable lower triangular matrix
 #'
-#' @importFrom gmat anti_t
 #' @export
 lowertriangB <- function(Sigma,
                          P = solve(Sigma),
@@ -182,7 +161,7 @@ lowertriangB <- function(Sigma,
 
   p <- nrow(Sigma)
   l <- listInverseBlocks(Sigma)
-  blong <- gmat::anti_t(0.5 * C %*% P)[ upper.tri(Sigma)]
+  blong <- anti_t(0.5 * C %*% P)[ upper.tri(Sigma)]
   blong <- blong[length(blong):1]
   b <- blong[1:(p-1)]
   w <- l[[1]] %*% b
@@ -202,11 +181,21 @@ lowertriangB <- function(Sigma,
   }
   W <- matrix(nrow = p, ncol = p, 0)
   W[upper.tri(W)] <- w[length(w) : 1]
-  W <- gmat::anti_t(W)
+  W <- anti_t(W)
   W <- W - t(W)
   B <- (W - 0.5 * C) %*% P
   B[upper.tri(B)] <- 0
   return(B)
+}
+
+
+anti_t <- function(m)function (m){
+  p <- nrow(m)
+  j <- matrix(ncol = p, nrow = p, data = 0)
+  for (i in 1:p) {
+    j[i, p - i + 1] <- 1
+  }
+  return(j %*% t(m) %*% j)
 }
 
 
