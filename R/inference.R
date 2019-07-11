@@ -56,7 +56,7 @@ proxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
     n <- n + 1
 
     tmp <- P %*% Sigma %*% P - P
-
+    #tmp <- Sigma - S
     # delta <- Sigma - S
     # Cp <- delta %*% (B + C %*% P)
     # Cp <- 0.5 * (Cp + t(Cp))
@@ -174,17 +174,15 @@ aproxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
       ixnd <- ix[! ix %in% ixd ] ## not diagonal elements
     }
     n <- n + 1
-    
     jac <- jacllB(AA, EE, S, WKV) 
     fold <- f
     alph <- 1
     k <- 0
-    while (alph > 1e-5 && k < 100){
+    while (alph > 1e-8 && k < 100){
       tmp <- P %*% Sigma %*% P - P
       u <- jac %*% c(tmp)
       k <- k + 1
       Bold <- B
-      
       #### Beck and Teboulle line search
       f <- mll(P, Sigma) + lambda * sum(abs(Bold[ixnd]))
       fnew <- Inf
@@ -213,7 +211,6 @@ aproxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
         }
         alph <- alph * beta
       }
-      #print( (f - fnew) / abs(f) )
     }
     
     

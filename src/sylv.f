@@ -5181,6 +5181,134 @@ c           ...exit
   620 continue
       return
       end
+      subroutine dgedi(a,lda,n,ipvt,det,work,job)
+      integer lda,n,ipvt(1),job
+      double precision a(lda,1),det(2),work(1)
+c
+c     dgedi computes the determinant and inverse of a matrix
+c     using the factors computed by dgeco or dgefa.
+c
+c     on entry
+c
+c        a       double precision(lda, n)
+c                the output from dgeco or dgefa.
+c
+c        lda     integer
+c                the leading dimension of the array  a .
+c
+c        n       integer
+c                the order of the matrix  a .
+c
+c        ipvt    integer(n)
+c                the pivot vector from dgeco or dgefa.
+c
+c        work    double precision(n)
+c                work vector.  contents destroyed.
+c
+c        job     integer
+c                = 11   both determinant and inverse.
+c                = 01   inverse only.
+c                = 10   determinant only.
+c
+c     on return
+c
+c        a       inverse of original matrix if requested.
+c                otherwise unchanged.
+c
+c        det     double precision(2)
+c                determinant of original matrix if requested.
+c                otherwise not referenced.
+c                determinant = det(1) * 10.0**det(2)
+c                with  1.0 .le. dabs(det(1)) .lt. 10.0
+c                or  det(1) .eq. 0.0 .
+c
+c     error condition
+c
+c        a division by zero will occur if the input factor contains
+c        a zero on the diagonal and the inverse is requested.
+c        it will not occur if the subroutines are called correctly
+c        and if dgeco has set rcond .gt. 0.0 or dgefa has set
+c        info .eq. 0 .
+c
+c     linpack. this version dated 08/14/78 .
+c     cleve moler, university of new mexico, argonne national lab.
+c
+c     subroutines and functions
+c
+c     blas daxpy,dscal,dswap
+c     fortran dabs,mod
+c
+c     internal variables
+
+      double precision t
+      double precision ten
+      integer i,j,k,kb,kp1,l,nm1
+
+
+c     compute determinant
+
+      if (job/10 .eq. 0) go to 1070
+         det(1) = 1.0d0
+         det(2) = 0.0d0
+         ten = 10.0d0
+         do 1050 i = 1, n
+            if (ipvt(i) .ne. i) det(1) = -det(1)
+            det(1) = a(i,i)*det(1)
+c        ...exit
+            if (det(1) .eq. 0.0d0) go to 1060
+ 1010       if (dabs(det(1)) .ge. 1.0d0) go to 1020
+               det(1) = ten*det(1)
+               det(2) = det(2) - 1.0d0
+            go to 1010
+ 1020       continue
+ 1030       if (dabs(det(1)) .lt. ten) go to 1040
+               det(1) = det(1)/ten
+               det(2) = det(2) + 1.0d0
+            go to 1030
+ 1040       continue
+ 1050    continue
+ 1060    continue
+ 1070 continue
+c
+c     compute inverse(u)
+c
+      if (mod(job,10) .eq. 0) go to 1150
+         do 1100 k = 1, n
+            a(k,k) = 1.0d0/a(k,k)
+            t = -a(k,k)
+            call dscal(k-1,t,a(1,k),1)
+            kp1 = k + 1
+            if (n .lt. kp1) go to 1090
+            do 1080 j = kp1, n
+               t = a(k,j)
+               a(k,j) = 0.0d0
+               call daxpy(k,t,a(1,k),1,a(1,j),1)
+ 1080       continue
+ 1090       continue
+ 1100    continue
+c
+c        form inverse(u)*inverse(l)
+c
+         nm1 = n - 1
+         if (nm1 .lt. 1) go to 1140
+         do 1130 kb = 1, nm1
+            k = n - kb
+            kp1 = k + 1
+            do 1110 i = kp1, n
+               work(i) = a(i,k)
+               a(i,k) = 0.0d0
+ 1110       continue
+            do 1120 j = kp1, n
+               t = work(j)
+               call daxpy(n,t,a(1,j),1,a(1,k),1)
+ 1120       continue
+            l = ipvt(k)
+            if (l .ne. k) call dswap(n,a(1,k),1,a(1,l),1)
+ 1130    continue
+ 1140    continue
+ 1150 continue
+      return
+      end
       SUBROUTINE GRADLLB(N,A,E,D,S,WKV,GRAD,IX)
       INTEGER N, IX(N * N) 
       DOUBLE PRECISION A(N,N),E(N,N),D(N,N),S(N,N),WKV(2*N*N +3*N),
@@ -5226,9 +5354,38 @@ c  compute gradient
   720    CONTINUE
   730 CONTINUE       
       RETURN
-c last line of GRADLLB
+c     last line of GRADLLB
+      END
+      SUBROUTINE LLPARTB(N,A,E,S,D,WKV,DRV,I,J)
+c compute one partial derivative of the log-likelihood with respect
+c to one entry of the B matrix
+      INTEGER N,I,J
+      DOUBLE PRECISION A(N,N),E(N,N),D(N,N),S(N,N),WKV(2*N*N +3*N),DRV
+c internal variables
+      INTEGER II,JJ,K
+      DOUBLE PRECISION TEMPC(N,N)
+      DRV = 0
+      DO 732  II = 1, N
+         DO 731 JJ = 1, N
+            TEMPC(II,JJ) = 0
+  731    CONTINUE         
+  732 CONTINUE
+      DO 733 K=1,N
+         TEMPC(I,K) = S(J,K)
+         TEMPC(K,I) = S(K,J)
+  733 CONTINUE
+      TEMPC(I,I) = 2 * S(J,I)
+      CALL SYLGCQ(N,N,N,A,E,TEMPC,WKV)
+      DO 735 JJ = 1,N
+         DO 734 II = 1,N
+            DRV = DRV + TEMPC(II,JJ) * D(II,JJ) 
+  734    CONTINUE
+  735 CONTINUE
+      RETURN
+c last line of LLPARTB
       END
       SUBROUTINE JACLLB(N,A,E,S,WKV,JAC)
+c compute the Jacobian matrix 
       INTEGER N
       DOUBLE PRECISION A(N,N), E(N,N), S(N,N), 
      *WKV(2*N*N + 3*N), JAC(N*N, N*N)
@@ -5256,4 +5413,134 @@ c     internal variables
   757       CONTINUE          
   760    CONTINUE
   770 CONTINUE
+      RETURN
+c     last line of JACLLB
+      END
+      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR)
+      INTEGER N,MAXITR
+      DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
+c     internal variables
+      INTEGER I,J,K,IPVT(N),INFO, IX(N*N), ITER, IERR
+      DOUBLE PRECISION GRAD(N,N),TMPC(N,N),WKV(2*N*N + 3*N),E(N,N),
+     *TMPB(N,N),F,FNW,DET(2),WK(N),RCOND, DELTA(N,N), S(N,N), STEP,
+     * BOLD(N,N), DIFFB, LTEN, UNO
+      LTEN = LOG(10.0)
+c     copy the C matrix and initialize E as indentity 
+      ITR = 0
+      UNO = 1.0
+      RCOND = 0.0
+      IERR = 0
+      DO 772 J = 1,N
+         DO 771 I = 1,N
+            TMPC(I,J) = C(I,J) 
+            TMPB(I,J) = B(I,J)
+            E(I,J) = 0
+            IX((J-1)*N + I) = 1
+  771    CONTINUE          
+         E(J,J) = 1
+  772 CONTINUE          
+      CALL SYLGC(N,N,N,TMPB,E,TMPC,WKV,IERR,RCOND)
+      DO 774 J = 1,N
+         DO 773 I = 1,N
+            S(I,J) = TMPC(I,J)
+ 773     CONTINUE        
+ 774  CONTINUE
+      CALL DGEFA(TMPC, N, N, IPVT, INFO)
+      CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
+      F = LOG(DET(1)) + DET(2)*LTEN  
+      DO 776 J = 1,N
+         DO 775 I = 1,N
+            F = F + SIGMA(I,J) * TMPC(I,J) + LAMBDA * ABS(B(I,J))  
+            DELTA(I,J) = TMPC(I,J)
+ 775     CONTINUE        
+            F = F - LAMBDA * ABS(B(J,J)) 
+ 776  CONTINUE
+ 800  CONTINUE      
+      ITR = ITR + 1
+      CALL MULA(N, N, N, N, N , TMPC, SIGMA, WK) 
+      DO 777 K=1,N
+         TMPC(K,K) = TMPC(K,K) - 1
+ 777  CONTINUE
+      CALL MULB(N, N, N, N, N, TMPC, DELTA, WK) 
+      CALL GRADLLB(N,TMPB,E,DELTA,S,WKV,GRAD,IX)
+      DO 811 J = 1,N
+         DO 810 I = 1,N
+            BOLD(I,J) = B(I,J)
+  810    CONTINUE          
+  811 CONTINUE 
+      STEP = 1
+c gradient step
+  950 CONTINUE     
+      DO 779 J = 1,N
+         DO 778 I = 1,N
+            B(I,J) = BOLD(I,J) + STEP * GRAD(I,J) 
+  778    CONTINUE
+  779 CONTINUE
+c soft thresholding
+      DO 802 J =1,N
+         DO 801 I=1,N
+            IF (I .NE. J) THEN
+              B(I,J) = SIGN(UNO,B(I,J))*(ABS(B(I,J))-STEP*LAMBDA) 
+              IF (ABS(B(I,J)) .LT. STEP*LAMBDA) THEN
+                 B(I,J) = 0
+              ENDIF
+            ENDIF
+ 801     CONTINUE
+ 802  CONTINUE
+c     compute FNW
+      DO 852 J = 1,N
+         DO 851 I = 1,N
+            TMPC(I,J) = C(I,J) 
+            TMPB(I,J) = B(I,J)
+            E(I,J) = 0
+  851    CONTINUE          
+         E(J,J) = 1
+  852 CONTINUE 
+      CALL SYLGC(N,N,N,TMPB,E,TMPC,WKV,IERR,RCOND)
+      DO 822 J = 1,N
+         IF (TMPB(J,J) * E(J,J) .GE. 0.0) THEN
+                STEP = STEP * ALPHA
+                GOTO 950
+         ENDIF 
+ 822  CONTINUE         
+      DO 805 J = 1,N
+         DO 804 I = 1,N
+            S(I,J) = TMPC(I,J)
+ 804     CONTINUE        
+ 805  CONTINUE
+      CALL DGEFA(TMPC, N, N, IPVT, INFO)
+      CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
+      DIFFB = 0 
+      FNW = LOG(DET(1)) + DET(2)*LTEN  
+      DO 807 J = 1,N
+         DO 806 I = 1,N
+            FNW = FNW + SIGMA(I,J) * TMPC(I,J) + LAMBDA * ABS(B(I,J))  
+            DELTA(I,J) = TMPC(I,J)
+            DIFFB = DIFFB + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
+     *       (B(I,J) -BOLD(I,J)) * GRAD(I,J)  
+
+ 806     CONTINUE        
+         FNW = FNW - LAMBDA * ABS(B(J,J)) 
+ 807  CONTINUE
+      IF ( (FNW .GT. F + DIFFB) .OR.  (FNW .GT. F )) THEN
+         STEP = STEP * ALPHA
+         GOTO 950
+      ENDIF
+      IF (((F - FNW) / ABS(F) .LE. EPS) .OR.  (ITR .GE. MAXITR)) THEN
+c     terminate
+         EPS = FNW 
+         ALPHA = (F - FNW) / ABS(F)   
+         MAXITR = ITR
+         DO 911 J=1,N
+            DO 910 I=1,N
+               SIGMA(I,J) = GRAD(I,J)
+ 910        CONTINUE   
+ 911     CONTINUE         
+         GOTO 900 
+      ENDIF  
+      F = FNW
+      GOTO 800
+ 900  CONTINUE
+      RETURN
+c     last line of PRXGRDLLB
       END
