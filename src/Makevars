@@ -1,0 +1,2 @@
+#FLIBS = 'lapack'
+#PKG_LIBS = '-llapack'

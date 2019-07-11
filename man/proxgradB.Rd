@@ -2,10 +2,15 @@
 % Please edit documentation in R/inference.R
 \name{proxgradB}
 \alias{proxgradB}
+\alias{aproxgradB}
 \alias{gradC}
 \title{Estimate Continuous Lyapunov Gaussian GM}
 \usage{
 proxgradB(Sigma, B, C = diag(ncol(Sigma)), eps = 0.01, alpha = 0.2,
+  beta = 0.5, maxIter = 1000, trace = 0, lambda = 0, r = FALSE,
+  h = FALSE)
+
+aproxgradB(Sigma, B, C = diag(ncol(Sigma)), eps = 0.01, alpha = 0.2,
   beta = 0.5, maxIter = 1000, trace = 0, lambda = 0, r = FALSE,
   h = FALSE)
 
