@@ -11,7 +11,8 @@
 #' @return The solution matrix \eqn{X}.
 #' 
 #' @details 
-#' `clyap` use `BKDIS` from ALGORITHM 705, COLLECTED ALGORITHMS FROM ACM
+#' `clyap` use `BKDIS`  
+#' from ALGORITHM 705, COLLECTED ALGORITHMS FROM ACM
 #' 
 #' @examples 
 #' 
