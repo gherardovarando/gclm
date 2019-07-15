@@ -32,4 +32,5 @@ The estimated precision matrix
 }
 \description{
 Solve the generalized graphical lasso problem with proximal gradient
+\deqn{\hat{P} = \arg \min _ P -LL(P) + \lambda||GB||_1}
 }

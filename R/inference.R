@@ -52,37 +52,11 @@ proxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
       IX[-ix] <- 0 
       ixnd <- ix[! ix %in% ixd ] ## not diagonal elements
     }
-    
     n <- n + 1
 
     tmp <- P %*% Sigma %*% P - P
-    #tmp <- Sigma - S
-    # delta <- Sigma - S
-    # Cp <- delta %*% (B + C %*% P)
-    # Cp <- 0.5 * (Cp + t(Cp))
-    # AA <- S %x% diag(p)
-    # ixl <- matrix(nrow = p, ncol = p, 1:p^2)[lower.tri(Sigma)]
-    # ixu <- matrix(nrow = p, ncol = p, 1:p^2)[upper.tri(Sigma)]
-    # AA[, ixl] <-   AA[ , ixl] - AA[, ixu]
-    # AA <- AA[, -c(ixu, ixd)]
-    # u <- lm.fit(AA, c(Cp %*% S), offset = FALSE)$residual
-    # 
-    # u <- u[ix]
-    # u <- u / sqrt(sum(u ^ 2))
-    
-    #Binv <- solve(B)
-    #u1 <- vapply(ix, function(i){
-    #  E[ix[i]] <- 1
-    #  Cp <- E %*% S + S %*% t(E)
-    #  return(- 0.5 * sum(Binv * (Cp %*% tmp)))
-    #}, FUN.VALUE = 1)
     
     u <- gradllB(AA, EE, tmp, S, WKV, IX)[ix]   
-
-    #Jac <- jacllB(AA, EE, S, WKV)
-    #u1 <- Jac %*% c(tmp)
-    #plot(u1, u)
-    #u <- u / sqrt(sum(u ^ 2))
     
     if (trace > 3){
       col = rep(1, p^2)
@@ -121,7 +95,9 @@ proxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
       }
       alph <- alph * beta
     }
-
+    #ix <- ix[sort(u, decreasing = TRUE, index.return = TRUE)$ix[1:p]]
+    #IX[-ix] <- 0 
+    #ixnd <- ix[! ix %in% ixd ] 
     a <- (f - fnew ) / (abs(f))      
     if (trace > 1){
       message("Iteration: ", n, " ||diff||:", signif(a),
@@ -307,6 +283,7 @@ gradC <- function(Sigma, B, C = diag(ncol(Sigma)), C0 = diag(ncol(Sigma)),
 #' generalized graphical lasso
 #'
 #' Solve the generalized graphical lasso problem with proximal gradient
+#' \deqn{\hat{P} = \arg \min _ P -LL(P) + \lambda||GB||_1}
 #' 
 #' @param Sigma the covariance matriz
 #' @param P initial precision matrix
@@ -350,7 +327,9 @@ genGlasso <- function(Sigma, P = diag(nrow(Sigma)),
       P <- Pold + alph * u
 
       ### proximal step (genLasso)
-      b <- genlasso(P[-ixu], D = GG, minlam = alph * lambda)$beta
+      b <- genlasso::genlasso(P[-ixu], 
+                              D = GG, 
+                              minlam = alph * lambda)$beta
       P[-ixu] <- b[, ncol(b)]
       P[ixu] <- P[ixl]
       if (all(eigen(P, symmetric = TRUE, only.values = TRUE)$values > 0)){
@@ -373,5 +352,57 @@ genGlasso <- function(Sigma, P = diag(nrow(Sigma)),
 
   return(P)
 }
+
+
+#' Recover lower triangular B
+#'
+#' Recover the only lower triangular stable matrix B such that 
+#' \code{Sigma} (\eqn{\Sigma})
+#' is the solution of the associated continuous Lyapunov equation:
+#' \deqn{B\Sigma + \Sigma B' + C = 0}
+#'
+#'
+#' @param Sigma acovariance matrix
+#' @param P the inverse of the  covariance matrix
+#' @param C symmetric positive definite matrix 
+#'
+#' @return A stable lower triangular matrix
+#'
+#' @export
+lowertriangB <- function(Sigma,
+                         P = solve(Sigma),
+                         C = diag(nrow = nrow(Sigma))){
+  
+  p <- nrow(Sigma)
+  l <- listInverseBlocks(Sigma)
+  blong <- anti_t(0.5 * C %*% P)[ upper.tri(Sigma)]
+  blong <- blong[length(blong):1]
+  b <- blong[1:(p-1)]
+  w <- l[[1]] %*% b
+  t <- p
+  for (i in 2:length(l)){
+    b <- blong[t:(t + p - i - 1)]
+    t <- t + p - i
+    AA <- matrix(nrow = length(b), ncol = length(w), 0)
+    for (j in (i+1):p){
+      for (k in 1:(i-1)){
+        ix <- (k - 1) * p - (k - 1) * k / 2 + (i - k)
+        AA[j - i, ix] <-  P[k, j]
+      }
+    }
+    b <- b + tcrossprod(AA, t(w) )
+    w <- c(w, l[[i]] %*% b)
+  }
+  W <- matrix(nrow = p, ncol = p, 0)
+  W[upper.tri(W)] <- w[length(w) : 1]
+  W <- anti_t(W)
+  W <- W - t(W)
+  B <- (W - 0.5 * C) %*% P
+  B[upper.tri(B)] <- 0
+  return(B)
+}
+
+
+
 
 
