@@ -5441,8 +5441,8 @@ c     internal variables
       RETURN
 c     last line of JACLLB
       END
-      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR)
-      INTEGER N,MAXITR
+      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB)
+      INTEGER N,MAXITR,JOB
       DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
 c     PRXGRDLLB perform proximal gradient algorithm on the
 c     entries of the B matrix of a CLGGM to solve the 
@@ -5466,6 +5466,15 @@ c          ALPHA  double precision
 c                 Beck and tabulle line search rate
 c          MAXITR integer
 c                 maximum number of iterations
+c          JOB    integer
+c                 Roules to select the entries of B to be updated
+c                 0  - all entries of B
+c                 1  - after each iteration only the non-zero entries 
+c                      of B are updated
+c                 10 - only non-zero entries of initial B  
+c                 11 - starting from non-zero entries of B and 
+c                      updating at each iteration the non-zero 
+c                      entries
 c 
 c     ON RETURN
 c          SIGMA  double precision (N,N)
@@ -5487,112 +5496,113 @@ c     copy the C matrix and initialize E as indentity
       UNO = 1.0
       RCOND = 0.0
       IERR = 0
-      DO 772 J = 1,N
-         DO 771 I = 1,N
+      DO 20 J = 1,N
+         DO 10 I = 1,N
+            IX((J-1)*N + I) = 1
+            IF (JOB / 10 .EQ. 1 .AND. B(I,J) .EQ. 0) IX((J-1)*N + I)=0 
             TMPC(I,J) = C(I,J) 
             TMPB(I,J) = B(I,J)
             E(I,J) = 0
-            IX((J-1)*N + I) = 1
-  771    CONTINUE          
+  10     CONTINUE          
          E(J,J) = 1
-  772 CONTINUE          
+  20  CONTINUE          
       CALL SYLGC(N,N,N,TMPB,E,TMPC,WKV,IERR,RCOND)
-      DO 774 J = 1,N
-         DO 773 I = 1,N
+      DO 40 J = 1,N
+         DO 30 I = 1,N
             S(I,J) = TMPC(I,J)
- 773     CONTINUE        
- 774  CONTINUE
+ 30      CONTINUE        
+ 40   CONTINUE
       CALL DGEFA(TMPC, N, N, IPVT, INFO)
       CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
       F = LOG(DET(1)) + DET(2)*LTEN  
-      DO 776 J = 1,N
-         DO 775 I = 1,N
+      DO 60 J = 1,N
+         DO 50 I = 1,N
             F = F + SIGMA(I,J) * TMPC(I,J) + LAMBDA * ABS(B(I,J))  
             DELTA(I,J) = TMPC(I,J)
- 775     CONTINUE        
-            F = F - LAMBDA * ABS(B(J,J)) 
- 776  CONTINUE
- 800  CONTINUE      
+ 50      CONTINUE        
+c            F = F - LAMBDA * ABS(B(J,J)) 
+ 60   CONTINUE
 c     main loop here, increase iteration counter
+ 500  CONTINUE      
       ITR = ITR + 1
 c     compute P*SIGMA, where P = S^{-1}
       CALL MULA(N, N, N, N, N , TMPC, SIGMA, WK) 
 c     compute P*SIGMA - I
-      DO 777 K=1,N
+      DO 70 K=1,N
          TMPC(K,K) = TMPC(K,K) - 1
- 777  CONTINUE
+ 70   CONTINUE
 c     compute (P*SIGMA - I)*P = P*SIGAM*P - P
       CALL MULB(N, N, N, N, N, TMPC, DELTA, WK) 
 c     compute gradient 
       CALL GRADLLB(N,TMPB,E,DELTA,S,WKV,GRAD,IX)
 c     copy old B before starting line search 
-      DO 811 J = 1,N
-         DO 810 I = 1,N
+      DO 90 J = 1,N
+         DO 80 I = 1,N
             BOLD(I,J) = B(I,J)
-  810    CONTINUE          
-  811 CONTINUE 
+  80     CONTINUE          
+  90  CONTINUE 
       STEP = 1
 c     line search loop here
-  950 CONTINUE     
+  600 CONTINUE     
 c     gradient step
-      DO 779 J = 1,N
-         DO 778 I = 1,N
+      DO 110 J = 1,N
+         DO 100 I = 1,N
             B(I,J) = BOLD(I,J) + STEP * GRAD(I,J) 
-  778    CONTINUE
-  779 CONTINUE
+  100    CONTINUE
+  110 CONTINUE
 c     soft thresholding
-      DO 802 J =1,N
-         DO 801 I=1,N
-            IF (I .NE. J) THEN
+      DO 130 J =1,N
+         DO 120 I=1,N
+            IF (I .NE. J .AND. IX((J-1)*N + I) .EQ. 1) THEN
               B(I,J) = SIGN(UNO,B(I,J))*(ABS(B(I,J))-STEP*LAMBDA) 
               IF (ABS(B(I,J)) .LT. STEP*LAMBDA) THEN
                  B(I,J) = 0
               ENDIF
             ENDIF
- 801     CONTINUE
- 802  CONTINUE
+ 120     CONTINUE
+ 130  CONTINUE
 c     solve new Lyapunov equation
-      DO 852 J = 1,N
-         DO 851 I = 1,N
+      DO 150 J = 1,N
+         DO 140 I = 1,N
             TMPC(I,J) = C(I,J) 
             TMPB(I,J) = B(I,J)
             E(I,J) = 0
-  851    CONTINUE          
+  140    CONTINUE          
          E(J,J) = 1
-  852 CONTINUE 
+  150 CONTINUE 
       CALL SYLGC(N,N,N,TMPB,E,TMPC,WKV,IERR,RCOND)
 c     chek if B is stable using the factorization in SYLGC
-      DO 822 J = 1,N
+      DO 160 J = 1,N
          IF (TMPB(J,J) * E(J,J) .GE. 0.0) THEN
                 STEP = STEP * ALPHA
-                GOTO 950
+                GOTO 600
          ENDIF 
- 822  CONTINUE         
+ 160  CONTINUE         
 c     copy the solution of the Lyapunov equation
-      DO 805 J = 1,N
-         DO 804 I = 1,N
+      DO 180 J = 1,N
+         DO 170 I = 1,N
             S(I,J) = TMPC(I,J)
- 804     CONTINUE        
- 805  CONTINUE
+ 170     CONTINUE        
+ 180  CONTINUE
 c     LU factorization, determinant and inverse of the solution of CLE
       CALL DGEFA(TMPC, N, N, IPVT, INFO)
       CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
       DIFFB = 0 
 c     compute FNW, objective function in new B
       FNW = LOG(DET(1)) + DET(2)*LTEN  
-      DO 807 J = 1,N
-         DO 806 I = 1,N
+      DO 200 J = 1,N
+         DO 190 I = 1,N
             FNW = FNW + SIGMA(I,J) * TMPC(I,J) + LAMBDA * ABS(B(I,J))  
             DELTA(I,J) = TMPC(I,J)
             DIFFB = DIFFB + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
      *       (B(I,J) -BOLD(I,J)) * GRAD(I,J)  
- 806     CONTINUE        
-         FNW = FNW - LAMBDA * ABS(B(J,J)) 
- 807  CONTINUE
+ 190     CONTINUE        
+c         FNW = FNW - LAMBDA * ABS(B(J,J)) 
+ 200  CONTINUE
 c     Beck and Tabulle line search and descent condition
       IF ( (FNW .GT. F + DIFFB) .OR.  (FNW .GT. F )) THEN
          STEP = STEP * ALPHA
-         GOTO 950
+         GOTO 600
       ENDIF
 c     check stopping criteria
       IF (((F - FNW) / ABS(F) .LE. EPS) .OR.  (ITR .GE. MAXITR)) THEN
@@ -5600,17 +5610,25 @@ c     terminate and save additional outputs
          ALPHA = FNW 
          EPS = (F - FNW) / ABS(F)   
          MAXITR = ITR
-         DO 911 J=1,N
-            DO 910 I=1,N
+         DO 220 J=1,N
+            DO 210 I=1,N
                SIGMA(I,J) = S(I,J)
- 910        CONTINUE   
- 911     CONTINUE         
+ 210        CONTINUE   
+ 220     CONTINUE         
          GOTO 900 
       ENDIF  
+      IF (MOD(JOB,10) .EQ. 1) THEN
+         DO 240 J=1,N
+            DO 230 I=1,N
+               IF (B(I,J) .EQ. 0) IX((J-1)*N+I)=0
+ 230        CONTINUE
+ 240     CONTINUE
+      ENDIF
 c     update value of objective function and repeat
       F = FNW
-      GOTO 800
+      GOTO 500
  900  CONTINUE
       RETURN
 c     last line of PRXGRDLLB
       END
+

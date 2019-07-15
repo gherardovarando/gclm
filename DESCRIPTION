@@ -1,20 +1,17 @@
 Package: clggm
 Type: Package
-Title: Estimate Dynamical Model from Cross Sectional Data
+Title: Continuous Lyapunov Gaussian Graphical Models
 Version: 0.0.1
 Author: gherardo varando
 Maintainer: gherardo varando <gherardo.varando@gmail.com>
-Description: Estimate Ornstein-Uhlenbeckprocess from cross sectional
+Description: Estimate Ornstein-Uhlenbeck process from cross sectional
              data.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
-Imports: gmat,
-         lyapunov,
-         MASS,
-         stats,
-         genlasso
+Imports: MASS,
+         stats
 Suggests: testthat,
-          igraph
+         genlasso
