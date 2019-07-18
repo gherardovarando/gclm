@@ -3,23 +3,16 @@
 \name{clyap}
 \alias{clyap}
 \alias{clyap2}
-\alias{gradllB}
 \alias{jacllB}
-\alias{fproxgradB}
 \title{Solve continuous-time Lyapunov/Sylvester equations
 \code{clyap} solve the continuous-time Lyapunov equations
-\deqn{AXE' + EXA'+Q=0.}}
+\deqn{AXE' + EXA'+ Q=0.}}
 \usage{
 clyap(A, Q, E = NULL, all = FALSE)
 
 clyap2(A, Q, WKV, E)
 
-gradllB(A, E, D, S, WKV, IX = NULL)
-
 jacllB(A, E, S, WKV)
-
-fproxgradB(Sigma, B, C = diag(ncol(Sigma)), eps = 0.01, alpha = 0.5,
-  maxIter = 1000, lambda = 0, all = FALSE, job = 0)
 }
 \arguments{
 \item{A}{Square matrix}
@@ -38,7 +31,7 @@ The solution matrix \eqn{X}.
 \description{
 Solve continuous-time Lyapunov/Sylvester equations
 \code{clyap} solve the continuous-time Lyapunov equations
-\deqn{AXE' + EXA'+Q=0.}
+\deqn{AXE' + EXA'+ Q=0.}
 }
 \details{
 \code{clyap} use \code{BKDIS}

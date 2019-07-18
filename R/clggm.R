@@ -1,6 +1,6 @@
 #' Solve continuous-time Lyapunov/Sylvester equations
 #' \code{clyap} solve the continuous-time Lyapunov equations
-#' \deqn{AXE' + EXA'+Q=0.}
+#' \deqn{AXE' + EXA'+ Q=0.}
 #' 
 #' @param A Square matrix
 #' @param Q Square matrix
@@ -48,6 +48,7 @@ clyap2 <- function(A, Q, WKV, E) {
 
 
 #' @rdname clyap
+#' Obtain the gradient 
 #' @export
 gradllB <- function(A, E, D, S, WKV, IX = NULL){
   N <- ncol(A)
@@ -55,7 +56,7 @@ gradllB <- function(A, E, D, S, WKV, IX = NULL){
     IX <- rep(1, N * N)
   }
   grad <- matrix(nrow = N, ncol = N, 0)
-  out <- .Fortran('GRADLLB', as.integer(N),
+  out <- .Fortran('GRADB', as.integer(N),
                   as.double(A), as.double(E), as.double(D), as.double(S),
                   as.double(WKV), as.double(grad), as.integer(IX),
                   PACKAGE = "clggm")
@@ -75,9 +76,13 @@ jacllB <- function(A, E, S, WKV){
   return(matrix(nrow = N *N, ncol = N * N, data = out[[6]]))
 }
 
-#' @rdname clyap
+#' Penalized likelihood estimation of CLGGM
+#' 
+#' Optimize the B matrix of a continuous Lyapunov 
+#' Gaussian graphical model (CLGGM) using proximal gradient. 
+#' \deqn{\hat{B} = \arg \min_B LL(B,C) + \lambda||B||_1}
 #' @export
-fproxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
+proxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
                        alpha = 0.5, 
                        maxIter = 1000, 
                        lambda = 0, all = FALSE, job = 0){
@@ -86,7 +91,59 @@ fproxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
           as.double(C), as.double(lambda), as.double(eps),
           as.double(alpha), as.integer(maxIter),as.integer(job),
           PACKAGE = "clggm")
- if  (all) return(out)
- matrix(nrow = ncol(Sigma), out[[3]])
+ names(out) <- c("N", "Sigma", "B", "C", "lambda", "diff", 
+                 "logLikl1", "iter", "job")
+ out$Sigma <- matrix(nrow = out$N, out$Sigma)
+ out$B <- matrix(nrow = out$N, out$B)
+ out$C <- matrix(nrow = out$N, out$C)
+ return(out)
 }
 
+#' Penalized likelihood estimation of CLGGM
+#' 
+#' Optimize the B matrix of a continuous Lyapunov 
+#' Gaussian graphical model (CLGGM) using proximal gradient. 
+#' \deqn{\hat{B} = \arg \min_B LL(B,C) + \lambda||B||_1}
+#' @export
+proxgradlsB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
+                      alpha = 0.5, 
+                      maxIter = 1000, 
+                      lambda = 0, all = FALSE, job = 0){
+  
+  out <- .Fortran("PRXGRDLSB",as.integer(ncol(Sigma)), as.double(Sigma), 
+                  as.double(B), 
+                  as.double(C), as.double(lambda), as.double(eps),
+                  as.double(alpha), as.integer(maxIter),as.integer(job),
+                  PACKAGE = "clggm")
+  names(out) <- c("N", "Sigma", "B", "C", "lambda", "diff", 
+                  "logLikl1", "iter", "job")
+  out$Sigma <- matrix(nrow = out$N, out$Sigma)
+  out$B <- matrix(nrow = out$N, out$B)
+  out$C <- matrix(nrow = out$N, out$C)
+  return(out)
+}
+
+
+#' Penalized likelihood estimation of CLGGM
+#' 
+#' Optimize the B matrix of a continuous Lyapunov 
+#' Gaussian graphical model (CLGGM) using proximal coordinate descent. 
+#' \deqn{\hat{B} = \arg \min_B LL(B,C) + \lambda||B||_1}
+#' @export
+proxcdllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
+                        alpha = 0.5, 
+                        maxIter = 1000, 
+                        lambda = 0, job = 0){
+  
+  out <- .Fortran("PRXCDLLB",as.integer(ncol(Sigma)), as.double(Sigma), as.double(B), 
+                  as.double(C), as.double(lambda), as.double(eps),
+                  as.double(alpha), as.integer(maxIter),as.integer(job),
+                  PACKAGE = "clggm")
+  names(out) <- c("N", "Sigma", "B", "C", "lambda", "diff", 
+                  "logLikl1", "iter", "job")
+  out$Sigma <- matrix(nrow = out$N, out$Sigma)
+  out$B <- matrix(nrow = out$N, out$B)
+  out$C <- matrix(nrow = out$N, out$C)
+  return(out)
+  
+}
