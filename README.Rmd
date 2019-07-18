@@ -1,0 +1,83 @@
+---
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# clggm 
+
+`clggm` contatins methods to estimate the coefficients of the stochastic 
+process (Ornstein–Uhlenbeck)
+$dX_t = B(X_t - a)dt + DdW_t$
+from observations of the invariant distribution.
+
+## Installation 
+
+```{r, eval = FALSE}
+devtools::install_github("gherardovarando/clggm")
+```
+
+### Dependencies 
+
+- `MASS`
+- `stats` 
+- `genlasso` (only for the `genglasso` function), it can be obtained with: 
+```{r, eval=FALSE}
+devtools::install_github("glmgen/genlasso")
+```
+- `testthat` (only in dev)
+
+
+## Usage
+
+```{r}
+library(clggm)
+
+### define coefficient matrices
+B <- matrix(nrow = 4, c(-4, 1,   0,  0, 
+                         0, -3,  1,  0,
+                         0,  0, -2,  1,
+                         0,  0,  0, -1), byrow = TRUE)
+D <- diag(c(1,1,1,1))
+C <- D %*% t(D)
+
+### solve continuous Lyapunov equation 
+### to obtain covariance of invariant 
+### distribution
+Sigma <- clyap(B, C) 
+
+### obtain observations from the invariant distribution
+sample <- MASS::mvrnorm(n = 1000, mu = rep(0,4),Sigma =  Sigma)
+``` 
+
+
+### Estimate $B$ knowing $C$
+
+```{r}
+B0 <- - 0.5 * C %*% solve(cov(sample))
+### penalized maximum-likelihood solved with proximal gradient
+results <- proxgradllB(cov(sample), B= B0, C = C, eps = 1e-12, 
+                       maxIter = 1000, lambda = 0.05, job = 0)
+results 
+
+### penalized least square 0.5*||S(B) - Sigma||_2^2 + lambda * ||B||_1,off
+results2 <- proxgradlsB(cov(sample), B= B0, C = C, eps = 1e-12, 
+                       maxIter = 1000, lambda = 0.01, job = 0)
+results2$B
+```
+
+#### Solutions along a regularization path
+
+```{r}
+results <- llBpath(Sigma, eps = 1e-12, maxIter = 1000, job = 10)
+t(sapply(results, function(res) c(lambda = res$lambda, 
+                                npar = sum(res$B!=0),
+                                fp = sum(res$B!=0 & B==0),
+                                tp = sum(res$B!=0 & B!=0) ,
+                                fn = sum(res$B==0 & B!=0),
+                                tn = sum(res$B==0 & B==0),
+                                errs = sum(res$B!=0 & B==0) + 
+                                  sum(res$B==0 & B!=0))))
+```

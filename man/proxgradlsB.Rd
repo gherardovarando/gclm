@@ -5,7 +5,7 @@
 \title{Penalized likelihood estimation of CLGGM}
 \usage{
 proxgradlsB(Sigma, B, C = diag(ncol(Sigma)), eps = 0.01, alpha = 0.5,
-  maxIter = 1000, lambda = 0, all = FALSE, job = 0)
+  maxIter = 1000, lambda = 0, job = 0)
 }
 \description{
 Optimize the B matrix of a continuous Lyapunov
