@@ -3,6 +3,7 @@
 \name{clyap}
 \alias{clyap}
 \alias{clyap2}
+\alias{gradllB}
 \alias{jacllB}
 \title{Solve continuous-time Lyapunov/Sylvester equations
 \code{clyap} solve the continuous-time Lyapunov equations
@@ -11,6 +12,8 @@
 clyap(A, Q, E = NULL, all = FALSE)
 
 clyap2(A, Q, WKV, E)
+
+gradllB(A, E, D, S, WKV, IX = NULL)
 
 jacllB(A, E, S, WKV)
 }
