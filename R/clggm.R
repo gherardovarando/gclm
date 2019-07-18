@@ -85,7 +85,7 @@ jacllB <- function(A, E, S, WKV){
 proxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
                        alpha = 0.5, 
                        maxIter = 1000, 
-                       lambda = 0, all = FALSE, job = 0){
+                       lambda = 0, job = 0){
   
  out <- .Fortran("PRXGRDLLB",as.integer(ncol(Sigma)), as.double(Sigma), as.double(B), 
           as.double(C), as.double(lambda), as.double(eps),
@@ -108,7 +108,7 @@ proxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
 proxgradlsB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
                       alpha = 0.5, 
                       maxIter = 1000, 
-                      lambda = 0, all = FALSE, job = 0){
+                      lambda = 0, job = 0){
   
   out <- .Fortran("PRXGRDLSB",as.integer(ncol(Sigma)), as.double(Sigma), 
                   as.double(B), 
