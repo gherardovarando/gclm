@@ -48,7 +48,6 @@ clyap2 <- function(A, Q, WKV, E) {
 
 
 #' @rdname clyap
-#' Obtain the gradient 
 #' @export
 gradllB <- function(A, E, D, S, WKV, IX = NULL){
   N <- ncol(A)

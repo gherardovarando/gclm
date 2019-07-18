@@ -1,6 +1,3 @@
-##################### OLD R Implementations
-##################### will pass everyhting to FORTRAN
-
 #' Estimate Continuous Lyapunov Gaussian GM
 #'
 #' Estimate from cross sectional data 
@@ -120,97 +117,7 @@ proxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
 }
 
 
-#' @rdname proxgradB
-#' MAYBE WRONG
-#' @export
-aproxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
-                      alpha = 0.2, beta = 0.5,
-                      maxIter = 1000, trace = 0,
-                      lambda = 0, r = FALSE, h = FALSE){
-  p <- ncol(Sigma)
-  ixd <- 0:(p - 1) * (p) + 1:p ##index of diagonal elements
-  a <- Inf
-  n <- 0
-  E <- matrix(nrow = p, ncol = p, 0)
-  if (h) ix <- (1: p^2 )[B != 0]
-  else ix <- 1:(p^2)
-  ixnd <- ix[! ix %in% ixd ] ## not diagonal elements
-  IX <- rep(1, p * p) ###index for fortran
-  IX[-ix] <- 0
-  allres <- clyap(A = B, Q = C, all = TRUE)
-  S <- matrix(nrow = p, data = allres[[6]])
-  AA <- matrix(nrow = p, data = allres[[4]])
-  EE <- matrix(nrow = p, data = allres[[5]])
-  WKV <- allres[[7]]
-  P <- solve(S)
-  tk <- 1
-  u <- rep(0, length(ix))
-  f <- mll(P = P, S = Sigma) + lambda * sum(abs(B[ixnd]))
-  Cp <- matrix(nrow = p, ncol = p, 0)
-  while (a > eps && n < maxIter) {
-    if (r){
-      ix <- (1: p^2 )[B != 0]
-      IX[-ix] <- 0 
-      ixnd <- ix[! ix %in% ixd ] ## not diagonal elements
-    }
-    n <- n + 1
-    jac <- jacllB(AA, EE, S, WKV) 
-    fold <- f
-    alph <- 1
-    k <- 0
-    while (alph > 1e-8 && k < 100){
-      tmp <- P %*% Sigma %*% P - P
-      u <- jac %*% c(tmp)
-      k <- k + 1
-      Bold <- B
-      #### Beck and Teboulle line search
-      f <- mll(P, Sigma) + lambda * sum(abs(Bold[ixnd]))
-      fnew <- Inf
-      
-      alph <- alpha
-      while ( fnew   > f - sum(u * (B[ix] - Bold[ix]) ) +
-              sum((B[ix] - Bold[ix]) ^ 2) / (2* alph)  || fnew > f) {
-        
-        B[ix] <- Bold[ix] + alph * u
-        
-        ### soft thres
-        B[ixnd] <- sign(B[ixnd]) * (abs(B[ixnd]) - alph * lambda)
-        B[ixnd][abs(B[ixnd]) < (alph * lambda)] <- 0
-        
-        ### Lyapunv solution
-        allres <- clyap(A = B, Q = C, all = TRUE)
-        S <- matrix(nrow = p, data = allres[[6]])
-        AA <- matrix(nrow = p, data = allres[[4]])
-        EE <- matrix(nrow = p, data = allres[[5]])
-        WKV <- allres[[7]]
-        if (all( (diag(AA) * diag(EE))  < 0 )){ ###checking if B is stable
-          P <- solve(S)
-          fnew <- mll(P, Sigma) + lambda * sum(abs(B[ixnd]))
-        }else{
-          fnew <- Inf
-        }
-        alph <- alph * beta
-      }
-    }
-    
-    
-    a <- (fold - fnew ) / (abs(fold))
-    if (trace > 1){
-      message("Iteration: ", n, " ||diff||:", signif(a),
-              " alpha:", alph / beta)
-    }
-  }
-  if (trace > 0){
-    message("Stop after ", n, " iterations, with ||diff||=", signif(a))
-  }
-  attr(B, ".proxgradB") <- list(
-    param = c( eps = eps, alpha = alpha, 
-               beta = beta, maxIter = maxIter, 
-               lambda = lambda, r = r, h = h),
-    optimres = c(finalDiff = a, iterations = n)
-  )
-  return(B)
-}
+
 
 #' @rdname proxgradB
 #' @param C0 penalization matrix

@@ -11,7 +11,7 @@ llBpath <- function(Sigma, lambdas = NULL,
                     C = diag(nrow(Sigma)), eps = 1e-8, maxIter = 1000, 
                     job = 10){
   if (is.null(lambdas)) {
-    lambdas = seq(max(abs(Sigma))/20, max(abs(Sigma)), length = 10)
+    lambdas = seq(max(abs(Sigma))/20, max(abs(Sigma)) / 2, length = 10)
   }
   results <- list()
   B0 <- - 0.5 * C %*% solve(Sigma)

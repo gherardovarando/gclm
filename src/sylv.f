@@ -5639,7 +5639,7 @@ c     last line of PRXGRDLLB
       DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
 c     PRXGRDLSB perform proximal gradient algorithm on the
 c     entries of the B matrix of a CLGGM to solve the 
-c     penalized LAST SQARE problem:
+c     penalized least squares problem:
 c          ARGMIN  0.5*||S(B,C) - SIGMA||_2 ** 2  + LAMBDA * ||B||_1,off 
 c          SUBJECT  B STABLE 
 c     ON ENTRY
