@@ -22,7 +22,7 @@
 #' @return the estimated B matrix (\code{estimateBLL}) or
 #' the estiamted C matrix (\code{estiamteCLL}).
 #' @export
-proxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
+RproxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
                         alpha = 0.2, beta = 0.5,
                         maxIter = 1000, trace = 0,
                         lambda = 0, r = FALSE, h = FALSE){
@@ -119,7 +119,7 @@ proxgradB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
 
 
 
-#' @rdname proxgradB
+#' @rdname RproxgradllB
 #' @param C0 penalization matrix
 #' @param t0 initial step length
 #' @export
