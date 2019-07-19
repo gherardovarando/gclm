@@ -81,3 +81,10 @@ t(sapply(results, function(res) c(lambda = res$lambda,
                                 errs = sum(res$B!=0 & B==0) + 
                                   sum(res$B==0 & B!=0))))
 ```
+
+
+## Related code
+
+- Some code is from the `lyapunov` package (https://github.com/gragusa/lyapunov).
+
+- Using FORTRAN code of Algorithm 705 from the Collected Algorithms from ACM, TRANSACTIONS ON MATHEMATICAL SOFTWARE, VOL. 18, NO. 2, PP. 232-238.75.
