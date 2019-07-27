@@ -9,7 +9,7 @@
 \code{clyap} solve the continuous-time Lyapunov equations
 \deqn{AXE' + EXA'+ Q=0.}}
 \usage{
-clyap(A, Q, E = NULL, all = FALSE)
+clyap(A, C, all = FALSE)
 
 clyap2(A, Q, WKV, E)
 
@@ -20,13 +20,13 @@ jacllB(A, E, S, WKV)
 \arguments{
 \item{A}{Square matrix}
 
-\item{Q}{Square matrix}
-
-\item{E}{Square matrix or \code{NULL}}
-
 \item{all}{logical}
 
+\item{Q}{Square matrix}
+
 \item{WKV}{the working vector obtained by a first call to lyapunov solver}
+
+\item{E}{Square matrix or \code{NULL}}
 }
 \value{
 The solution matrix \eqn{X}.
