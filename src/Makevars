@@ -1,2 +1,1 @@
-#FLIBS = 'lapack'
-#PKG_LIBS = '-llapack'
+PKG_LIBS=$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)

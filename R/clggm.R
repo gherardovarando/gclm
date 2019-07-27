@@ -18,22 +18,22 @@
 #' 
 #' @useDynLib clggm
 #' @export
-clyap <- function(A, Q, E=NULL, all = FALSE) {
+clyap <- function(A, C, all = FALSE) {
   N <- ncol(A)
-  if (is.null(E)) {
-    E <- diag(N)
-  }
-  WKV   <- rep(0, 2*N^2+3*N)
-  out <- .Fortran('SYLGC', as.integer(N), as.integer(N), as.integer(N),
-                  as.double(A), as.double(E), as.double(Q),
-                  as.double(WKV), as.integer(0), as.integer(0),
+  Q <- matrix(nrow = N, ncol = N, 0)
+  out <- .Fortran('DGELYP', as.integer(N),
+                  as.double(A), as.double(-C),
+                  as.double(Q), as.integer(0), as.integer(0),
                   PACKAGE = "clggm")
   if (all){
     out
   }else{
-    matrix(out[[6]], N, N) 
+    matrix(out[[3]], N, N) 
   }
 }
+
+
+
 
 #' @rdname clyap
 #' @export
