@@ -604,14 +604,14 @@ c     performed.
 c     internal variables
       INTEGER K,SDIM, UNO
       LOGICAL BWORK(N)
-      DOUBLE PRECISION WR(N), WI(N), WK(3*N + 1), TMP(N,N)
+      DOUBLE PRECISION WR(N), WI(N), WK(3*N), TMP(N,N)
       DOUBLE PRECISION ONE, ZERO,SCA
       PARAMETER(ONE=1.0d+0, ZERO=0.0d+0, UNO=1)
       INFO = 0
       SCA = 1.0
 c     Schur factorization if needed
       IF (JOB .EQ. 0) THEN 
-         CALL DGEES('V','N',SEL, N,A,N,SDIM,WR,WI,Q,N,WK,3*N + 1,
+         CALL DGEES('V','N',SEL, N,A,N,SDIM,WR,WI,Q,N,WK,3*N,
      *BWORK, INFO) 
 c        check stability of A, if no stable return with INFO = -1
          DO 10 K=1,N
