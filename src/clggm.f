@@ -1,3 +1,59 @@
+      SUBROUTINE TRNATA (NA,N,A)
+C
+C     *****PARAMETERS:
+      INTEGER NA,N
+      DOUBLE PRECISION A(NA,N)
+C
+C     *****LOCAL VARIABLES:
+      INTEGER I,J,NM1,JP1
+      DOUBLE PRECISION TEMP
+C
+C     ------------------------------------------------------------------
+C
+C     *****PURPOSE:
+C     THIS SUBROUTINE REPLACES THE N X N ARRAY A WITH THE TRANSPOSE
+C     OF A.
+C
+C     *****PARAMETER DESCRIPTION:
+C
+C     ON INPUT:
+C
+C        NA               ROW DIMENSION OF THE ARRAY CONTAINING A AS
+C                         DECLARED IN THE CALLING PROGRAM DIMENSION
+C                         STATEMENT;
+C
+C        N                ORDER OF THE MATRIX A;
+C
+C        A                AN N X N MATRIX.
+C
+C     ON OUTPUT:
+C
+C        A                AN N X N ARRAY CONTAINING THE TRANSPOSE OF THE
+C                         INPUT MATRIX A.
+C
+C     *****HISTORY:
+C     WRITTEN BY ALAN J. LAUB (ELEC. SYS. LAB., M.I.T., RM. 35-331,
+C     CAMBRIDGE, MA 02139,  PH.: (617)-253-2125), SEPTEMBER 1977.
+C     MOST RECENT VERSION: SEP. 21, 1977.
+C
+C     ------------------------------------------------------------------
+C
+      IF (N.EQ.1) RETURN
+      NM1 = N- 1
+      DO 20 J=1,NM1
+         JP1=J+1
+         DO 10 I=JP1,N
+            TEMP=A(I,J)
+            A(I,J)=A(J,I)
+            A(J,I)=TEMP
+10       CONTINUE
+20    CONTINUE
+      RETURN
+C
+C     LAST LINE OF TRNATA
+C
+      END
+c
       SUBROUTINE MQFWO (NS,NX,N,S,X,WORK)
 C
 C     *****PARAMETERS:
@@ -82,7 +138,8 @@ C
 C
 C     LAST LINE OF MQFWO
 C
-      END 
+      END
+c
       SUBROUTINE MULA(NA,NB,N,M,L,A,B,WORK)
 C
 C     *****PARAMETERS:
@@ -623,14 +680,18 @@ c        check stability of A, if no stable return with INFO = -1
       ENDIF
 c     Transform C into Q**TCQ and save into C
 c       transform C into  Q**TC and save into C
-      CALL DGEMM('T','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
+c      CALL DGEMM('T','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
 c       transform C into CQ and save into C
-      CALL DGEMM('N','N',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
+c      CALL DGEMM('N','N',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
+      CALL MQFWO(N,N,N,C,Q,WK)
 c     solve associated sylvester equation
       CALL DTRSYL('N', 'T', UNO, N, N, A, N, A, N, C, N, SCA, INFO)
 cc     transform C into QCQ**T
-      CALL DGEMM('N','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
-      CALL DGEMM('N','T',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
+      CALL TRNATA(N,N,Q)
+      CALL MQFWO(N,N,N,C,Q,WK)
+      CALL TRNATA(N,N,Q)
+c      CALL DGEMM('N','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
+c      CALL DGEMM('N','T',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
  900  CONTINUE
       RETURN
 c     last line of DGELYP
