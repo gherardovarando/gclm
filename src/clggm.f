@@ -647,9 +647,9 @@ c
       end
 c
 c
-      SUBROUTINE DGELYP(N,A,C,Q,JOB,INFO)
+      SUBROUTINE DGELYP(N,A,C,Q,WK,JOB,INFO)
       INTEGER N,INFO, JOB
-      DOUBLE PRECISION A(N,N), C(N,N), Q(N,N)
+      DOUBLE PRECISION A(N,N), C(N,N), Q(N,N), WK(5*N)
 c     Solve Lyapunov equation 
 c         AX + XA**T = C 
 c     If JOB .EQ. 0 DGELYP first obtains the Schur factorization and check if all 
@@ -659,20 +659,24 @@ c     and Q contains the orthogonal matrix that transfromed it into the
 c     Schur form, moreover A is assumed to be stable and no check is
 c     performed. 
 c     internal variables
-      INTEGER K,SDIM, UNO
+      INTEGER K,SDIM, UNO,INDR,INDI,INDW
       LOGICAL BWORK(N)
-      DOUBLE PRECISION WR(N), WI(N), WK(3*N), TMP(N,N)
+c      DOUBLE PRECISION WR(N), WI(N), WK(3*N), TMP(N,N)
       DOUBLE PRECISION ONE, ZERO,SCA
       PARAMETER(ONE=1.0d+0, ZERO=0.0d+0, UNO=1)
       INFO = 0
       SCA = 1.0
+      INDR = 1
+      INDI = INDR + N
+      INDW = INDI + N
 c     Schur factorization if needed
       IF (JOB .EQ. 0) THEN 
-         CALL DGEES('V','N',SEL, N,A,N,SDIM,WR,WI,Q,N,WK,3*N,
-     *BWORK, INFO) 
+         CALL DGEES('V','N',SEL,
+     *N,A,N,SDIM,WK(INDR),WK(INDI),Q,N,WK(INDW)
+     *,3*N,BWORK, INFO) 
 c        check stability of A, if no stable return with INFO = -1
          DO 10 K=1,N
-            IF (WR(K) .GE. 0) THEN
+            IF (WK(K) .GE. 0) THEN
                INFO = -1 
                GOTO 900
             ENDIF
@@ -680,18 +684,18 @@ c        check stability of A, if no stable return with INFO = -1
       ENDIF
 c     Transform C into Q**TCQ and save into C
 c       transform C into  Q**TC and save into C
-      CALL DGEMM('T','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
+c      CALL DGEMM('T','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
 c       transform C into CQ and save into C
-      CALL DGEMM('N','N',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
-c      CALL MQFWO(N,N,N,C,Q,WK)
+c      CALL DGEMM('N','N',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
+      CALL MQFWO(N,N,N,C,Q,WK)
 c     solve associated sylvester equation
       CALL DTRSYL('N', 'T', UNO, N, N, A, N, A, N, C, N, SCA, INFO)
 cc     transform C into QCQ**T
-c      CALL TRNATA(N,N,Q)
-c      CALL MQFWO(N,N,N,C,Q,WK)
-c      CALL TRNATA(N,N,Q)
-      CALL DGEMM('N','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
-      CALL DGEMM('N','T',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
+      CALL TRNATA(N,N,Q)
+      CALL MQFWO(N,N,N,C,Q,WK)
+      CALL TRNATA(N,N,Q)
+c      CALL DGEMM('N','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
+c      CALL DGEMM('N','T',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
  900  CONTINUE
       RETURN
 c     last line of DGELYP
@@ -705,9 +709,9 @@ c     logical function as parameter of DGEES
       END
 c
 c
-      SUBROUTINE GRADB(N,B,D,S,Q,GRAD,IX)
+      SUBROUTINE GRADB(N,B,D,S,Q,WK,GRAD,IX)
       INTEGER N, IX(N * N) 
-      DOUBLE PRECISION B(N,N),D(N,N),S(N,N),Q(N,N),GRAD(N,N)
+      DOUBLE PRECISION B(N,N),D(N,N),S(N,N),Q(N,N),GRAD(N,N),WK(5*N)
 c     Subroutine GRADB
 c 
 c     GradB computee the gradient  
@@ -735,7 +739,7 @@ c  compute gradient
                   TEMPC(K,I) = S(K,J) 
   715          CONTINUE          
                TEMPC(I,I) =  2 * S(J,I)
-               CALL DGELYP(N, B, TEMPC, Q, 1, INFO)
+               CALL DGELYP(N, B, TEMPC, Q, WK, 1, INFO)
                DO 717 JJ = 1, N 
                   DO 716 II = 1, N
                      GRAD(I,J) = GRAD(I,J) - TEMPC(II,JJ) * D(II,JJ)
@@ -748,9 +752,9 @@ c  compute gradient
       RETURN
 c     last line of GRADB
       END
-      SUBROUTINE PARTB(N,B,S,D,Q,DRV,I,J)
+      SUBROUTINE PARTB(N,B,S,D,Q,WK,DRV,I,J)
       INTEGER N,I,J
-      DOUBLE PRECISION B(N,N),D(N,N),S(N,N),Q(N,N),DRV
+      DOUBLE PRECISION B(N,N),D(N,N),S(N,N),Q(N,N),DRV,WK(5*N)
 c     SUBROUTINE PARTB 
 c   
 c     PARTB computes one partial derivative 
@@ -794,7 +798,7 @@ c internal variables
          TEMPC(K,I) = S(K,J)
   733 CONTINUE
       TEMPC(I,I) = 2 * S(J,I)
-      CALL DGELYP(N,B,TEMPC,Q,1,INFO)
+      CALL DGELYP(N,B,TEMPC,Q,WK,1,INFO)
       DO 735 JJ = 1,N
          DO 734 II = 1,N
             DRV = DRV - TEMPC(II,JJ) * D(II,JJ) 
@@ -803,11 +807,11 @@ c internal variables
       RETURN
 c last line of LLPARTB
       END
-      SUBROUTINE JACLLB(N,B,S,Q,JAC)
+      SUBROUTINE JACLLB(N,B,S,Q,WK,JAC)
 c compute the Jacobian matrix 
       INTEGER N,INFO
       DOUBLE PRECISION B(N,N), S(N,N), 
-     *Q(N,N), JAC(N*N, N*N)
+     *Q(N,N), JAC(N*N, N*N), WK(5*N)
 c     internal variables
       INTEGER I,J
       DOUBLE PRECISION TEMPC(N,N)
@@ -823,7 +827,7 @@ c     internal variables
                TEMPC(K,I) = S(K,J)
   755       CONTINUE 
             TEMPC(I,I) = 2 * S(J,I)
-            CALL DGELYP(N,B,TEMPC,Q,1,INFO)
+            CALL DGELYP(N,B,TEMPC,Q,WK,1,INFO)
             DO 757 JJ = 1,N
                DO 756 II = 1,N
                   JAC(N * (J - 1) + I, N * (JJ - 1) + II) =-TEMPC(II,JJ)
@@ -882,7 +886,7 @@ c          MAXITR number of iterations
 c     internal variables
       INTEGER I,J,K,IPVT(N),INFO, IX(N*N), ITER
       DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),
-     *TMPB(N,N),F,FNW,DET(2),WK(N), S(N,N), STEP,
+     *TMPB(N,N),F,FNW,DET(2),WK(5*N), S(N,N), STEP,
      *BOLD(N,N), DIFFB, LTEN, UNO, ZERO, MUNO, DELTA(N,N)
       LTEN = LOG(10.0)
 c     copy C,B and initialize IX 
@@ -900,7 +904,7 @@ c     copy C,B and initialize IX
             TMPB(I,J) = B(I,J)
   10     CONTINUE          
   20  CONTINUE          
-      CALL DGELYP(N,TMPB,TMPC,Q,0,INFO)
+      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
       DO 40 J = 1,N
          DO 30 I = 1,N
             S(I,J) = TMPC(I,J)
@@ -928,7 +932,7 @@ c     compute P*SIGMA - I
 c     compute (P*SIGMA - I)*P = P*SIGAM*P - P
       CALL MULB(N, N, N, N, N, TMPC, DELTA, WK)
 c     compute gradient 
-      CALL GRADB(N,TMPB,DELTA,S,Q,GRAD,IX)
+      CALL GRADB(N,TMPB,DELTA,S,Q,WK,GRAD,IX)
 c     copy old B before starting line search 
       DO 90 J = 1,N
          DO 80 I = 1,N
@@ -962,9 +966,9 @@ c     solve new Lyapunov equation
             TMPB(I,J) = B(I,J)
   140    CONTINUE          
   150 CONTINUE 
-      CALL DGELYP(N,TMPB,TMPC,Q,0,INFO)
+      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
 c     chek if B is stable
-      IF (INFO .EQ. -1) THEN
+      IF (INFO .LT. 0) THEN
          STEP = STEP * ALPHA
          GOTO 600
       ENDIF 
@@ -1069,7 +1073,7 @@ c     internal variables
       INTEGER I,J,K,IPVT(N),INFO, IX(N*N), ITER, IERR
       DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),E(N,N),
      *TMPB(N,N),F,FNW,RCOND, DELTA(N,N), STEP,
-     *BOLD(N,N), DIFFB, LTEN, UNO
+     *BOLD(N,N), DIFFB, LTEN, UNO, WK(5*N)
       LTEN = LOG(10.0)
 c     copy the C matrix and initialize E as indentity 
       ITR = 0
@@ -1084,7 +1088,7 @@ c     copy the C matrix and initialize E as indentity
             TMPB(I,J) = B(I,J)
   10     CONTINUE          
   20  CONTINUE          
-      CALL DGELYP(N,TMPB,TMPC,Q,0,INFO)
+      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
       F = 0
       DO 60 J = 1,N
          DO 50 I = 1,N
@@ -1097,7 +1101,7 @@ c     main loop here, increase iteration counter
  500  CONTINUE      
       ITR = ITR + 1
 c     compute gradient 
-      CALL GRADB(N,TMPB,DELTA,TMPC,Q,GRAD,IX)
+      CALL GRADB(N,TMPB,DELTA,TMPC,Q,WK,GRAD,IX)
 c     copy old B before starting line search 
       DO 90 J = 1,N
          DO 80 I = 1,N
@@ -1131,7 +1135,7 @@ c     solve new Lyapunov equation
             TMPB(I,J) = B(I,J)
   140    CONTINUE          
   150 CONTINUE 
-      CALL DGELYP(N,TMPB,TMPC,Q,0,INFO)
+      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
 c     chek if B is stable using the factorization in SYLGC
       IF (INFO .EQ. -1) THEN
          STEP = STEP * ALPHA
