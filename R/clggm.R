@@ -91,7 +91,7 @@ proxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
           as.double(alpha), as.integer(maxIter),as.integer(job),
           PACKAGE = "clggm")
  names(out) <- c("N", "Sigma", "B", "C", "lambda", "diff", 
-                 "logLikl1", "iter", "job")
+                 "objective", "iter", "job")
  out$Sigma <- matrix(nrow = out$N, out$Sigma)
  out$B <- matrix(nrow = out$N, out$B)
  out$C <- matrix(nrow = out$N, out$C)
@@ -102,7 +102,7 @@ proxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
 #' 
 #' Optimize the B matrix of a continuous Lyapunov 
 #' Gaussian graphical model (CLGGM) using proximal gradient. 
-#' \deqn{\hat{B} = \arg \min_B LL(B,C) + \lambda||B||_1}
+#' \deqn{\hat{B} = \arg \min_B 0.5 * ||S(B,C) - Sigma|| + \lambda||B||_1}
 #' @export
 proxgradlsB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
                       alpha = 0.5, 
@@ -115,7 +115,7 @@ proxgradlsB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
                   as.double(alpha), as.integer(maxIter),as.integer(job),
                   PACKAGE = "clggm")
   names(out) <- c("N", "Sigma", "B", "C", "lambda", "diff", 
-                  "logLikl1", "iter", "job")
+                  "objective", "iter", "job")
   out$Sigma <- matrix(nrow = out$N, out$Sigma)
   out$B <- matrix(nrow = out$N, out$B)
   out$C <- matrix(nrow = out$N, out$C)
@@ -139,10 +139,39 @@ proxcdllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
                   as.double(alpha), as.integer(maxIter),as.integer(job),
                   PACKAGE = "clggm")
   names(out) <- c("N", "Sigma", "B", "C", "lambda", "diff", 
-                  "logLikl1", "iter", "job")
+                  "objective", "iter", "job")
   out$Sigma <- matrix(nrow = out$N, out$Sigma)
   out$B <- matrix(nrow = out$N, out$B)
   out$C <- matrix(nrow = out$N, out$C)
   return(out)
   
+}
+
+
+#' Penalized likelihood estimation of CLGGM
+#' 
+#' Optimize the C matrix of a continuous Lyapunov 
+#' Gaussian graphical model (CLGGM) usign gradient descent. 
+#' \deqn{\hat{C} = \arg \min_C LL(B,C) + \lambda||C - C_0||_2^2}
+#' @export
+graddsllc <- function(Sigma, B, C = diag(ncol(Sigma)),
+                      C0 = diag(ncol(Sigma)),
+                      eps =  1e-2,
+                      alpha = 0.5, 
+                      beta = 0.2,
+                      maxIter = 1000, 
+                      lambda = 0, job = 0){
+  out <- .Fortran("GRDDSLLC",as.integer(ncol(Sigma)), as.double(Sigma), as.double(B), 
+                  as.double(diag(C)), as.double(diag(C0)), as.double(lambda), 
+                  as.double(eps),
+                  as.double(alpha), as.double(beta),
+                  as.integer(maxIter),as.integer(job),
+                  PACKAGE = "clggm")
+  names(out) <- c("N", "Sigma", "B", "C", "C0", "lambda", "diff", "beta", 
+                  "objective", "iter", "job")
+  out$Sigma <- matrix(nrow = out$N, out$Sigma)
+  out$B <- matrix(nrow = out$N, out$B)
+  out$C <- diag(out$C)
+  out$C0 <- diag(out$C0)
+  return(out)
 }

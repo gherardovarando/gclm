@@ -123,7 +123,7 @@ RproxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
 #' @param C0 penalization matrix
 #' @param t0 initial step length
 #' @export
-gradC <- function(Sigma, B, C = diag(ncol(Sigma)), C0 = diag(ncol(Sigma)),
+gradllC <- function(Sigma, B, C = diag(ncol(Sigma)), C0 = diag(ncol(Sigma)),
                         eps =  1e-2,
                         alpha = 0.2,
                         beta = 0.5,
@@ -184,7 +184,6 @@ gradC <- function(Sigma, B, C = diag(ncol(Sigma)), C0 = diag(ncol(Sigma)),
   if (trace > 0){
     message("Stop after ", n, " iterations, with ||diff||=", signif(a))
   }
-
   return(C)
 }
 
@@ -198,7 +197,7 @@ gradC <- function(Sigma, B, C = diag(ncol(Sigma)), C0 = diag(ncol(Sigma)),
 #' \deqn{B\Sigma + \Sigma B' + C = 0}
 #'
 #'
-#' @param Sigma acovariance matrix
+#' @param Sigma covariance matrix
 #' @param P the inverse of the  covariance matrix
 #' @param C symmetric positive definite matrix 
 #'
