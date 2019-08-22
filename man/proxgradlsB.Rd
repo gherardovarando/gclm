@@ -7,6 +7,39 @@
 proxgradlsB(Sigma, B, C = diag(ncol(Sigma)), eps = 0.01, alpha = 0.5,
   maxIter = 1000, lambda = 0, job = 0)
 }
+\arguments{
+\item{Sigma}{the observed covariance matrix}
+
+\item{B}{an initial B matrix}
+
+\item{C}{the C matrix}
+
+\item{eps}{convergence threshold for the proximal gradient}
+
+\item{alpha}{Beck and Tabulle line search rate}
+
+\item{maxIter}{the maximum number of iterations}
+
+\item{lambda}{penalization coefficient}
+
+\item{job}{integer, rules to select the entries of B to be updated:
+0: all entries, 1: non-zero entries at each iteration,
+10: non-zero entries of initial B,
+11: starting from non-zero entries of initial B update at
+each iteration.}
+}
+\value{
+a list with the output of the optimization:
+* \code{N}
+* \code{Sigma} the covariance of the estimated CLGGM
+* \code{B} the estimated B matrix
+* \code{C}
+* \code{lambda}
+* \code{diff} the value of the last relative decrease
+* \code{objective} the value of the objective function
+* \code{iter} number of iterations
+* \code{job}
+}
 \description{
 Optimize the B matrix of a continuous Lyapunov
 Gaussian graphical model (CLGGM) using proximal gradient.
