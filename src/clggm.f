@@ -1368,5 +1368,138 @@ c     update value of objective function and repeat
       GOTO 500
  900  CONTINUE
       RETURN
-
+c     last line of PRXCDLLB
+      END
+      SUBROUTINE GRDDSLLC(N,SIGMA,B,C,CZ,LAMBDA,EPS,ALPHA,BETA,
+     *MAXITR,JOB)
+      INTEGER N, MAXITR, JOB
+      DOUBLE PRECISION SIGMA(N,N), B(N,N), C(N), CZ(N),
+     *LAMBDA, EPS, ALPHA, BETA 
+c     GRDDSLLC performs gradient descent to solve the following problem
+c         ARGMIN - LL(B,C) + LAMBDA * ||C - C0||_2**2  
+c           SUBJECT C DIAGONAL, POSITIVE DEFINITE
+c    ON ENTRY
+c       
+c     INTERNAL VARIABLES
+      INTEGER I,J,K,IPVT(N),INFO, IX(N*N), ITER, IERR
+      DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),E(N,N),
+     *TMPB(N,N),F,FNW,DET(2),WK(5*N),RCOND, DELTA(N,N), S(N,N), STEP,
+     *COLD(N), LTEN, UNO, NG
+      LTEN = LOG(10.0)
+c     copy the C matrix and initialize E as indentity 
+      ITR = 0
+      UNO = 1.0
+      RCOND = 0.0
+      IERR = 0
+      DO 20 J = 1,N
+         DO 10 I=1,N
+            TMPC(I,J) = 0
+            IX((J-1)*N + I) = 0
+            E(I,J) = 0
+            TMPB(I,J) = B(I,J)
+ 10      CONTINUE
+            IX((J-1)*N + J) = 1
+            E(J,J) = 1
+            TMPC(J,J) = C(J)
+ 20   CONTINUE
+      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
+      DO 40 J = 1,N
+         DO 30 I = 1,N
+            S(I,J) = TMPC(I,J)
+ 30      CONTINUE        
+ 40   CONTINUE
+      CALL DGEFA(TMPC, N, N, IPVT, INFO)
+      CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
+      F = LOG(DET(1)) + DET(2)*LTEN  
+      DO 60 J = 1,N
+         DO 50 I = 1,N
+            F = F + SIGMA(I,J) * TMPC(I,J)   
+            DELTA(I,J) = TMPC(I,J)
+ 50      CONTINUE        
+            F = F + LAMBDA * (C(J) - CZ(J)) ** 2
+ 60   CONTINUE
+      FOLD = F
+c     main loop here, increase iteration counter
+ 500  CONTINUE      
+      ITR = ITR + 1
+c     compute P*SIGMA, where P = S^{-1}
+      CALL MULA(N, N, N, N, N , TMPC, SIGMA, WK) 
+c     compute P*SIGMA - I
+      DO 70 K=1,N
+       TMPC(K,K) = TMPC(K,K) - 1
+  70   CONTINUE
+c     compute (P*SIGMA - I)*P = P*SIGAM*P - P
+      CALL MULB(N, N, N, N, N, TMPC, DELTA, WK) 
+c     compute gradient 
+      CALL GRADC(N,TMPB,E,DELTA,WK,GRAD,IX)
+      NG = 0
+      DO 80 J = 1,N
+       GRAD(J,J) = GRAD(J,J) - 2 * LAMBDA * (C(J) - CZ(J)) 
+       NG = NG + GRAD(J,J) ** 2
+  80  CONTINUE
+c     copy old C before starting line search 
+      DO 90 J = 1,N
+         COLD(J) = C(J)         
+  90  CONTINUE 
+      STEP = 1
+c     line search loop here
+  600 CONTINUE     
+c     gradient step
+      DO 110 J = 1,N
+            C(J) = COLD(J) + STEP * GRAD(J,J) 
+            IF (C(J) .LE. 0) THEN
+                    STEP = STEP * ALPHA 
+                    GOTO 600
+            ENDIF
+  110 CONTINUE
+c     solve new Lyapunov equation
+      DO 150 J = 1,N
+         DO 140 I = 1,N
+            TMPC(I,J) = 0
+  140    CONTINUE          
+         TMPC(J,J) = C(J) 
+  150 CONTINUE 
+      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
+c     copy the solution of the Lyapunov equation
+      DO 180 J = 1,N
+         DO 170 I = 1,N
+            S(I,J) = TMPC(I,J)
+ 170     CONTINUE        
+ 180  CONTINUE
+c     LU factorization, determinant and inverse of the solution of CLE
+      CALL DGEFA(TMPC, N, N, IPVT, INFO)
+      CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
+c     compute FNW, objective function in new C
+      FNW = LOG(DET(1)) + DET(2)*LTEN  
+      DO 200 J = 1,N
+         DO 190 I = 1,N
+            FNW = FNW + SIGMA(I,J) * TMPC(I,J)  
+            DELTA(I,J) = TMPC(I,J)
+ 190     CONTINUE        
+            FNW = FNW  + LAMBDA * (C(J) - CZ(J)) ** 2
+ 200  CONTINUE
+c     backtracking 
+      IF (FNW .GT. F - STEP * BETA * NG) THEN
+         STEP = STEP * ALPHA
+         GOTO 600
+      ENDIF
+c     check stopping criteria
+      IF (((F - FNW) / ABS(F) .LE. EPS) .OR.  (ITR .GE. MAXITR)) THEN
+c     terminate and save additional outputs
+         ALPHA = FNW 
+         EPS = (F - FNW) / ABS(F)   
+         MAXITR = ITR
+         DO 220 J=1,N
+            DO 210 I=1,N
+               SIGMA(I,J) = S(I,J)
+ 210        CONTINUE   
+ 220     CONTINUE         
+         GOTO 900 
+      ENDIF  
+c     update value of objective function and repeat
+      F = FNW
+      GOTO 500
+ 900  CONTINUE
+      RETURN
+c     last line of GRDDSLLC
       END
