@@ -10,5 +10,5 @@ proxgradlsB(Sigma, B, C = diag(ncol(Sigma)), eps = 0.01, alpha = 0.5,
 \description{
 Optimize the B matrix of a continuous Lyapunov
 Gaussian graphical model (CLGGM) using proximal gradient.
-\deqn{\hat{B} = \arg \min_B LL(B,C) + \lambda||B||_1}
+\deqn{\hat{B} = \arg \min_B 0.5 * ||S(B,C) - Sigma|| + \lambda||B||_1}
 }
