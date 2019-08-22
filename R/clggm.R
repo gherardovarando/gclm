@@ -21,12 +21,16 @@
 clyap <- function(A, C, all = FALSE) {
   N <- ncol(A)
   Q <- matrix(nrow = N, ncol = N, 0)
+  WK <- rep(0, 5 * N)
   out <- .Fortran('DGELYP', as.integer(N),
                   as.double(A), as.double(-C),
-                  as.double(Q), as.integer(0), as.integer(0),
+                  as.double(Q),
+                  as.double(WK),
+                  as.integer(0), as.integer(0),
                   PACKAGE = "clggm")
   if (all){
-    out
+    list(S =matrix(out[[3]], N, N), Q = matrix(out[[4]], N, N), 
+         A = matrix(out[[2]], N, N) )
   }else{
     matrix(out[[3]], N, N) 
   }
@@ -37,13 +41,16 @@ clyap <- function(A, C, all = FALSE) {
 
 #' @rdname clyap
 #' @export
-clyap2 <- function(A, Q, WKV, E) {
+clyap2 <- function(A, C, Q) {
   N <- ncol(A)
-  out <- .Fortran('SYLGCQ', as.integer(N), as.integer(N), as.integer(N),
-                  as.double(A), as.double(E), as.double(Q),
-                  as.double(WKV),
+  WK <- rep(0, 5 * N)
+  out <- .Fortran('DGELYP', as.integer(N),
+                  as.double(A), as.double(-C),
+                  as.double(Q),
+                  as.double(WK),
+                  as.integer(1), as.integer(0),
                   PACKAGE = "clggm")
-  matrix(out[[6]], N, N)
+  matrix(out[[3]], N, N)
 }
 
 

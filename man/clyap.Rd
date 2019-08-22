@@ -11,7 +11,7 @@
 \usage{
 clyap(A, C, all = FALSE)
 
-clyap2(A, Q, WKV, E)
+clyap2(A, C, Q)
 
 gradllB(A, E, D, S, WKV, IX = NULL)
 
@@ -24,9 +24,9 @@ jacllB(A, E, S, WKV)
 
 \item{Q}{Square matrix}
 
-\item{WKV}{the working vector obtained by a first call to lyapunov solver}
-
 \item{E}{Square matrix or \code{NULL}}
+
+\item{WKV}{the working vector obtained by a first call to lyapunov solver}
 }
 \value{
 The solution matrix \eqn{X}.
