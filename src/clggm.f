@@ -25,7 +25,7 @@ C
 C        N                ORDER OF THE MATRIX A;
 C
 C        A                AN N X N MATRIX.
-C
+
 C     ON OUTPUT:
 C
 C        A                AN N X N ARRAY CONTAINING THE TRANSPOSE OF THE
@@ -1368,5 +1368,5 @@ c     update value of objective function and repeat
       GOTO 500
  900  CONTINUE
       RETURN
-c     last line of PRXCDLLB
+
       END
