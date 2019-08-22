@@ -2,43 +2,32 @@
 % Please edit documentation in R/clggm.R
 \name{clyap}
 \alias{clyap}
-\alias{clyap2}
-\alias{gradllB}
-\alias{jacllB}
-\title{Solve continuous-time Lyapunov/Sylvester equations
-\code{clyap} solve the continuous-time Lyapunov equations
-\deqn{AXE' + EXA'+ Q=0.}}
+\title{Solve continuous-time Lyapunov equations}
 \usage{
-clyap(A, C, all = FALSE)
-
-clyap2(A, C, Q)
-
-gradllB(A, E, D, S, WKV, IX = NULL)
-
-jacllB(A, E, S, WKV)
+clyap(B, C, Q = NULL, all = FALSE)
 }
 \arguments{
-\item{A}{Square matrix}
+\item{B}{Square matrix}
+
+\item{C}{Square matrix}
+
+\item{Q}{Square matrix, the orthogonal matrix used
+to transfrom the original equation}
 
 \item{all}{logical}
-
-\item{Q}{Square matrix}
-
-\item{E}{Square matrix or \code{NULL}}
-
-\item{WKV}{the working vector obtained by a first call to lyapunov solver}
 }
 \value{
 The solution matrix \eqn{X}.
 }
 \description{
-Solve continuous-time Lyapunov/Sylvester equations
 \code{clyap} solve the continuous-time Lyapunov equations
-\deqn{AXE' + EXA'+ Q=0.}
+\deqn{BX + XB' + C=0}
+Using the Bartels-Stewart algorithm with Hessenberg–Schur
+decomposition.
 }
 \details{
-\code{clyap} use \code{BKDIS}
-from ALGORITHM 705, COLLECTED ALGORITHMS FROM ACM
+\code{clyap} uses lapack subroutines:
+\code{DGEES} and \code{DTRSYL}
 }
 \examples{
 

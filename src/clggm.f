@@ -661,7 +661,6 @@ c     performed.
 c     internal variables
       INTEGER K,SDIM, UNO,INDR,INDI,INDW
       LOGICAL BWORK(N)
-c      DOUBLE PRECISION WR(N), WI(N), WK(3*N), TMP(N,N)
       DOUBLE PRECISION ONE,ZERO,SCA,TMP(N,N)
       PARAMETER(ONE=1.0d+0, ZERO=0.0d+0, UNO=1)
       INFO = 0
@@ -700,7 +699,7 @@ c      CALL TRNATA(N,N,Q)
       RETURN
 c     last line of DGELYP
       END
-
+c
 c     logical function as parameter of DGEES
       LOGICAL FUNCTION SEL(X,Y)
               DOUBLE PRECISION X,Y
@@ -765,7 +764,7 @@ c     denotes the solution of the Lyapunov equation
 c     BS + SB'+ C = 0
 c
 c local variables
-      INTEGER I,J,II,JJ,K
+      INTEGER I,J,II,JJ,K,INFO
       DOUBLE PRECISION TEMPC(N,N)
       DO 710  J = 1, N
          DO 700 I = 1, N
@@ -775,7 +774,7 @@ c local variables
   710 CONTINUE
 c  compute gradient
          DO 720 J = 1, N
-               TEMPC(J,J) = 2
+               TEMPC(J,J) = -2
                CALL DGELYP(N, B, TEMPC, Q, WK, 1, INFO)
                DO 717 JJ = 1, N 
                   DO 716 II = 1, N
@@ -801,7 +800,7 @@ c     denotes the solution of the Lyapunov equation
 c     BS + SB'+ C = 0
 c
 c local variables
-      INTEGER I,J,II,JJ,K
+      INTEGER I,J,II,JJ,K,INFO
       DOUBLE PRECISION TEMPC(N,N)
       DO 710  I = 1, N
          DO 700 J = 1, N
@@ -813,8 +812,8 @@ c  compute gradient
       DO 730 I = 1, N
          DO 720 J = 1, N
             IF (IX((J-1) * N + I) .EQ. 1) THEN
-               TEMPC(I,J) = TEMPC(I,J) + 1
-               TEMPC(J,I) = TEMPC(I,J) + 1
+               TEMPC(I,J) = TEMPC(I,J) - 1
+               TEMPC(J,I) = TEMPC(J,I) - 1
                CALL DGELYP(N, B, TEMPC, Q, WK, 1, INFO)
                DO 717 JJ = 1, N 
                   DO 716 II = 1, N
@@ -942,7 +941,7 @@ c                 Beck and tabulle line search rate
 c          MAXITR integer
 c                 maximum number of iterations
 c          JOB    integer
-c                 Roules to select the entries of B to be updated
+c                 Rules to select the entries of B to be updated
 c                 0  - all entries of B
 c                 1  - after each iteration only the non-zero entries 
 c                      of B are updated
@@ -1322,7 +1321,7 @@ c     copy the C matrix and initialize E as indentity
          DO 10 I = 1,N
             IX((J-1)*N + I) = 1
             IF (JOB / 10 .EQ. 1 .AND. B(I,J) .EQ. 0) IX((J-1)*N + I)=0 
-            TMPC(I,J) = C(I,J) 
+            TMPC(I,J) = -C(I,J) 
             TMPB(I,J) = B(I,J)
             E(I,J) = 0
   10     CONTINUE          
@@ -1380,7 +1379,7 @@ c           soft thresholding
 c           solve new Lyapunov equation
             DO 150 J = 1,N
                DO 140 I = 1,N
-                  TMPC(I,J) = C(I,J) 
+                  TMPC(I,J) = -C(I,J) 
                   TMPB(I,J) = B(I,J)
                   E(I,J) = 0
   140          CONTINUE          
@@ -1458,8 +1457,8 @@ c           SUBJECT C DIAGONAL, POSITIVE DEFINITE
 c    ON ENTRY
 c       
 c     INTERNAL VARIABLES
-      INTEGER I,J,K,IPVT(N),INFO, IX(N*N), ITER, IERR
-      DOUBLE PRECISION GRAD(N),TMPC(N,N),Q(N,N),E(N,N),
+      INTEGER I,J,K,IPVT(N),INFO, ITER, IERR
+      DOUBLE PRECISION GRAD(N),TMPC(N,N),Q(N,N),
      *TMPB(N,N),F,FNW,DET(2),WK(5*N),RCOND, DELTA(N,N), S(N,N), STEP,
      *COLD(N), LTEN, UNO, NG
       LTEN = LOG(10.0)
@@ -1471,13 +1470,9 @@ c     copy the C matrix and initialize E as indentity
       DO 20 J = 1,N
          DO 10 I=1,N
             TMPC(I,J) = 0
-            IX((J-1)*N + I) = 0
-            E(I,J) = 0
             TMPB(I,J) = B(I,J)
  10      CONTINUE
-            IX((J-1)*N + J) = 1
-            E(J,J) = 1
-            TMPC(J,J) = C(J)
+            TMPC(J,J) = -C(J)
  20   CONTINUE
       CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
       DO 40 J = 1,N
@@ -1534,9 +1529,9 @@ c     solve new Lyapunov equation
          DO 140 I = 1,N
             TMPC(I,J) = 0
   140    CONTINUE          
-         TMPC(J,J) = C(J) 
+         TMPC(J,J) = -C(J) 
   150 CONTINUE 
-      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
+      CALL DGELYP(N,TMPB,TMPC,Q,WK,1,INFO)
 c     copy the solution of the Lyapunov equation
       DO 180 J = 1,N
          DO 170 I = 1,N

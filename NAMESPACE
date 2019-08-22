@@ -2,12 +2,10 @@
 
 export(B0)
 export(clyap)
-export(clyap2)
 export(diagHessianll)
 export(genGlasso)
-export(gradllB)
+export(graddsllc)
 export(hessianll)
-export(jacllB)
 export(llBpath)
 export(lowertriangB)
 export(mll)
