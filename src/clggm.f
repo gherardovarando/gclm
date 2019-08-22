@@ -752,6 +752,83 @@ c  compute gradient
       RETURN
 c     last line of GRADB
       END
+      SUBROUTINE GRADCD(N,B,D,Q,WK,GRAD)
+      INTEGER N 
+      DOUBLE PRECISION B(N,N),D(N,N),Q(N,N),WK(5*N),GRAD(N)
+c     Subroutine GRADCD
+c 
+c     GRADCD computes the gradient  
+c     with respect to the diagonal entries of the C matrix. 
+c     In particular it computes the gradient 
+c     df/dC = JS(B,C) dg/dS   where f(B) = g(S(B)) and S(B)
+c     denotes the solution of the Lyapunov equation
+c     BS + SB'+ C = 0
+c
+c local variables
+      INTEGER I,J,II,JJ,K
+      DOUBLE PRECISION TEMPC(N,N)
+      DO 710  J = 1, N
+         DO 700 I = 1, N
+            TEMPC(I,J) = 0
+  700    CONTINUE         
+         GRAD(J) = 0
+  710 CONTINUE
+c  compute gradient
+         DO 720 J = 1, N
+               TEMPC(J,J) = 2
+               CALL DGELYP(N, B, TEMPC, Q, WK, 1, INFO)
+               DO 717 JJ = 1, N 
+                  DO 716 II = 1, N
+                     GRAD(J) = GRAD(J) + TEMPC(II,JJ) * D(II,JJ)
+  716             CONTINUE
+  717          CONTINUE              
+               TEMPC(J,J)=0
+  720    CONTINUE
+      RETURN
+c     last line of GRADCD
+      END
+      SUBROUTINE GRADC(N,B,D,Q,WK,GRAD,IX)
+      INTEGER N, IX(N * N) 
+      DOUBLE PRECISION B(N,N),D(N,N),Q(N,N),WK(5*N),
+     *GRAD(N,N)
+c     Subroutine GRADC
+c 
+c     GRADC computes the gradient  
+c     with respect to the entries of the C matrix. 
+c     In particular it computes the gradient 
+c     df/dC = JS(B,C) dg/dS   where f(B) = g(S(B)) and S(B)
+c     denotes the solution of the Lyapunov equation
+c     BS + SB'+ C = 0
+c
+c local variables
+      INTEGER I,J,II,JJ,K
+      DOUBLE PRECISION TEMPC(N,N)
+      DO 710  I = 1, N
+         DO 700 J = 1, N
+            TEMPC(I,J) = 0
+            GRAD(I,J) = 0
+  700    CONTINUE         
+  710 CONTINUE
+c  compute gradient
+      DO 730 I = 1, N
+         DO 720 J = 1, N
+            IF (IX((J-1) * N + I) .EQ. 1) THEN
+               TEMPC(I,J) = TEMPC(I,J) + 1
+               TEMPC(J,I) = TEMPC(I,J) + 1
+               CALL DGELYP(N, B, TEMPC, Q, WK, 1, INFO)
+               DO 717 JJ = 1, N 
+                  DO 716 II = 1, N
+                     GRAD(I,J) = GRAD(I,J) + TEMPC(II,JJ) * D(II,JJ)
+  716             CONTINUE
+  717          CONTINUE              
+               TEMPC(I,J)=0
+               TEMPC(J,I)=0
+            ENDIF 
+  720    CONTINUE
+  730 CONTINUE       
+      RETURN
+c     last line of GRADC
+      END
       SUBROUTINE PARTB(N,B,S,D,Q,WK,DRV,I,J)
       INTEGER N,I,J
       DOUBLE PRECISION B(N,N),D(N,N),S(N,N),Q(N,N),DRV,WK(5*N)
@@ -760,7 +837,7 @@ c
 c     PARTB computes one partial derivative 
 c     with respect
 c     to one entry of the coefficient matrix in a CLGGM
-c     PARTB has to be called after SYLGC since it 
+c     PARTB has to be called after DGELYP since it 
 c     operates over the factorized matrices
 c     In particular PARTB returns the partial derivative 
 c     df/dB_{I,J} = JS(B) dg/dS  where f(B) = g(S(B)) 
@@ -1382,7 +1459,7 @@ c    ON ENTRY
 c       
 c     INTERNAL VARIABLES
       INTEGER I,J,K,IPVT(N),INFO, IX(N*N), ITER, IERR
-      DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),E(N,N),
+      DOUBLE PRECISION GRAD(N),TMPC(N,N),Q(N,N),E(N,N),
      *TMPB(N,N),F,FNW,DET(2),WK(5*N),RCOND, DELTA(N,N), S(N,N), STEP,
      *COLD(N), LTEN, UNO, NG
       LTEN = LOG(10.0)
@@ -1431,11 +1508,11 @@ c     compute P*SIGMA - I
 c     compute (P*SIGMA - I)*P = P*SIGAM*P - P
       CALL MULB(N, N, N, N, N, TMPC, DELTA, WK) 
 c     compute gradient 
-      CALL GRADC(N,TMPB,E,DELTA,WK,GRAD,IX)
+      CALL GRADCD(N,TMPB,DELTA,Q,WK,GRAD)
       NG = 0
       DO 80 J = 1,N
-       GRAD(J,J) = GRAD(J,J) - 2 * LAMBDA * (C(J) - CZ(J)) 
-       NG = NG + GRAD(J,J) ** 2
+       GRAD(J) = GRAD(J) - 2 * LAMBDA * (C(J) - CZ(J)) 
+       NG = NG + GRAD(J) ** 2
   80  CONTINUE
 c     copy old C before starting line search 
       DO 90 J = 1,N
@@ -1446,7 +1523,7 @@ c     line search loop here
   600 CONTINUE     
 c     gradient step
       DO 110 J = 1,N
-            C(J) = COLD(J) + STEP * GRAD(J,J) 
+            C(J) = COLD(J) + STEP * GRAD(J) 
             IF (C(J) .LE. 0) THEN
                     STEP = STEP * ALPHA 
                     GOTO 600
