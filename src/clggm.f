@@ -662,7 +662,7 @@ c     internal variables
       INTEGER K,SDIM, UNO,INDR,INDI,INDW
       LOGICAL BWORK(N)
 c      DOUBLE PRECISION WR(N), WI(N), WK(3*N), TMP(N,N)
-      DOUBLE PRECISION ONE, ZERO,SCA
+      DOUBLE PRECISION ONE,ZERO,SCA,TMP(N,N)
       PARAMETER(ONE=1.0d+0, ZERO=0.0d+0, UNO=1)
       INFO = 0
       SCA = 1.0
@@ -684,18 +684,18 @@ c        check stability of A, if no stable return with INFO = -1
       ENDIF
 c     Transform C into Q**TCQ and save into C
 c       transform C into  Q**TC and save into C
-c      CALL DGEMM('T','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
+      CALL DGEMM('T','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
 c       transform C into CQ and save into C
-c      CALL DGEMM('N','N',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
-      CALL MQFWO(N,N,N,C,Q,WK)
+      CALL DGEMM('N','N',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
+c      CALL MQFWO(N,N,N,C,Q,WK)
 c     solve associated sylvester equation
       CALL DTRSYL('N', 'T', UNO, N, N, A, N, A, N, C, N, SCA, INFO)
 cc     transform C into QCQ**T
-      CALL TRNATA(N,N,Q)
-      CALL MQFWO(N,N,N,C,Q,WK)
-      CALL TRNATA(N,N,Q)
-c      CALL DGEMM('N','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
-c      CALL DGEMM('N','T',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
+c      CALL TRNATA(N,N,Q)
+c      CALL MQFWO(N,N,N,C,Q,WK)
+c      CALL TRNATA(N,N,Q)
+      CALL DGEMM('N','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
+      CALL DGEMM('N','T',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
  900  CONTINUE
       RETURN
 c     last line of DGELYP
