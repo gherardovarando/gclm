@@ -31,16 +31,18 @@ graddsllc(Sigma, B, C = diag(ncol(Sigma)), C0 = diag(ncol(Sigma)),
 }
 \value{
 a list with the output of the optimization:
-* \code{N}
-* \code{Sigma} the covariance of the estimated CLGGM
-* \code{B}
-* \code{C} the estimated C matrix
-* \code{C0}
-* \code{lambda}
-* \code{diff} the value of the last relative decrease
-* \code{objective} the value of the objective function
-* \code{iter} number of iterations
-* \code{job}
+\itemize{
+\item \code{N}
+\item \code{Sigma} the covariance of the estimated CLGGM
+\item \code{B}
+\item \code{C} the estimated C matrix
+\item \code{C0}
+\item \code{lambda}
+\item \code{diff} the value of the last relative decrease
+\item \code{objective} the value of the objective function
+\item \code{iter} number of iterations
+\item \code{job}
+}
 }
 \description{
 Optimize the diagonal C matrix of a continuous Lyapunov

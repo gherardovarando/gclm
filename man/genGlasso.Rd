@@ -13,7 +13,7 @@ genGlasso(Sigma, P = diag(nrow(Sigma)), G = -diag(nrow(Sigma)),
 
 \item{P}{initial precision matrix}
 
-\item{G}{Matrix in the generlaized penalization}
+\item{G}{Matrix in the generalized penalization}
 
 \item{lambda}{penalization coefficient}
 
