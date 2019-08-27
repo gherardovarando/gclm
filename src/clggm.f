@@ -1565,7 +1565,7 @@ c     terminate and save additional outputs
             DO 210 I=1,N
                SIGMA(I,J) = S(I,J)
  210        CONTINUE   
- 220     CONTINUE         
+ 220     CONTINUE 
          GOTO 900 
       ENDIF  
 c     update value of objective function and repeat
@@ -1574,4 +1574,47 @@ c     update value of objective function and repeat
  900  CONTINUE
       RETURN
 c     last line of GRDDSLLC
+      END
+c
+      SUBROUTINE PNLLBC(N, SIGMA, B, C, CZ, LAMBDA, LAMBDAC, EPS, ALPHA,
+     *BETA, MAXITR, INTITR, JOB)  
+      INTEGER N, MAXITR, INTITR, JOB
+      DOUBLE PRECISION SIGMA(N,N), B(N,N), C(N), CZ(N), LAMBDA,
+     *EPS, ALPHA, BETA, LAMBDAC
+c     internal varaibles
+      INTEGER I,J, TMPMAXITR, ITR
+      DOUBLE PRECISION TMPC(N,N), TMPS(N,N), TMPALPHA, TMPEPS, 
+     *TMPLAMBDA, TMPLAMBDAC
+      ITR = 0
+ 10   CONTINUE
+      ITR = ITR + 1
+      DO 30 J=1,N
+         DO 20 I=1,N
+            TMPS(I,J) = SIGMA(I,J)
+            TMPC(I,J) = 0
+ 20      CONTINUE 
+         TMPC(J,J) = C(J)
+ 30   CONTINUE
+      TMPALPHA = ALPHA 
+      TMPLAMBDA = LAMBDA
+      TMPEPS = EPS
+      TMPMAXITR = INTITR
+      CALL PRXGRDLLB(N, TMPS, B, TMPC, 
+     *TMPLAMBDA,TMPEPS,TMPALPHA,TMPMAXITR,JOB)
+      TMPLAMBDAC = LAMBDAC
+      TMPALPHA = ALPHA 
+      TMPEPS = EPS
+      TMPMAXITR = INTITR
+      DO 50 J=1,N
+         DO 40 I=1,N
+            TMPS(I,J)=SIGMA(I,J)
+ 40   CONTINUE
+ 50   CONTINUE
+      CALL GRDDSLLC(N, TMPS, B, C, CZ, TMPLAMBDAC, TMPEPS, TMPALPHA,
+     *BETA, TMPMAXITR, JOB)  
+      IF (ITR .LT. MAXITR) GOTO 10
+      MAXITR = ITR
+      ALPHA = TMPALPHA
+      EPS = TMPEPS
+      RETURN
       END

@@ -30,15 +30,17 @@ each iteration.}
 }
 \value{
 a list with the output of the optimization:
-* \code{N}
-* \code{Sigma} the covariance of the estimated CLGGM
-* \code{B} the estimated B matrix
-* \code{C}
-* \code{lambda}
-* \code{diff} the value of the last relative decrease
-* \code{objective} the value of the objective function
-* \code{iter} number of iterations
-* \code{job}
+\itemize{
+\item \code{N}
+\item \code{Sigma} the covariance of the estimated CLGGM
+\item \code{B} the estimated B matrix
+\item \code{C}
+\item \code{lambda}
+\item \code{diff} the value of the last relative decrease
+\item \code{objective} the value of the objective function
+\item \code{iter} number of iterations
+\item \code{job}
+}
 }
 \description{
 Optimize the B matrix of a continuous Lyapunov

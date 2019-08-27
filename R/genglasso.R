@@ -5,7 +5,7 @@
 #' 
 #' @param Sigma the covariance matriz
 #' @param P initial precision matrix
-#' @param G Matrix in the generlaized penalization
+#' @param G Matrix in the generalized penalization
 #' @param lambda penalization coefficient
 #' @param maxIter maximum number of iterations
 #' @param eps threshold for stopping criteria
