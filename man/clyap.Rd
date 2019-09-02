@@ -53,5 +53,11 @@ solving the Sylvester matrix equation AXBT + CXDT = E
 }
 }
 \examples{
-
+B <- matrix(data = rnorm(9), nrow = 3)
+## make B negative diagonally dominant, thus stable:
+diag(B) <- - 3 * max(B) 
+C <- diag(runif(3))
+X <- clyap(B, C)
+## check it is a solution:
+max(abs(B \%*\% X + X \%*\% t(B) + C)) 
 }

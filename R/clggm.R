@@ -41,7 +41,13 @@
 #'   solving the Sylvester matrix equation AXBT + CXDT = E
 #' 
 #' @examples 
-#' 
+#' B <- matrix(data = rnorm(9), nrow = 3)
+#' ## make B negative diagonally dominant, thus stable:
+#' diag(B) <- - 3 * max(B) 
+#' C <- diag(runif(3))
+#' X <- clyap(B, C)
+#' ## check it is a solution:
+#' max(abs(B %*% X + X %*% t(B) + C)) 
 #' @useDynLib clggm
 #' @export
 clyap <- function(B, C, Q = NULL, all = FALSE) {
@@ -270,6 +276,21 @@ graddsllc <- function(Sigma, B, C = diag(ncol(Sigma)),
 }
 
 
+#' Penalized-likelihood estimation of CLGGM
+#' 
+#' @param Sigma empirical covariance matrix
+#' @param B initial B matrix
+#' @param C intial C matrix
+#' @param C0 penalization matrix
+#' @param eps convergence tolerance 
+#' @param alpha parameter line search 
+#' @param beta parameter line search
+#' @param maxIter maximum number of iterations
+#' @param intitr number of internal iterations
+#' @param lambda penalization coefficient for B
+#' @param lambdac penalization coefficient for C
+#' @param job integer 0,1,10 or 11 
+#' @return a list with the result of the optimization
 #' @export
 pnllbc <- function(Sigma, B, C = diag(ncol(Sigma)),
                       C0 = diag(ncol(Sigma)),

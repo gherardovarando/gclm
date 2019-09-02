@@ -1,4 +1,4 @@
 library("testthat")
-library("crossSectional")
+library("clggm")
 
-test_check("crossSectional")
+test_check("clggm")
