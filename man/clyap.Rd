@@ -2,44 +2,62 @@
 % Please edit documentation in R/clggm.R
 \name{clyap}
 \alias{clyap}
-\alias{clyap2}
-\alias{gradllB}
-\alias{jacllB}
-\title{Solve continuous-time Lyapunov/Sylvester equations
-\code{clyap} solve the continuous-time Lyapunov equations
-\deqn{AXE' + EXA'+ Q=0.}}
+\title{Solve continuous-time Lyapunov equations}
 \usage{
-clyap(A, Q, E = NULL, all = FALSE)
-
-clyap2(A, Q, WKV, E)
-
-gradllB(A, E, D, S, WKV, IX = NULL)
-
-jacllB(A, E, S, WKV)
+clyap(B, C, Q = NULL, all = FALSE)
 }
 \arguments{
-\item{A}{Square matrix}
+\item{B}{Square matrix}
 
-\item{Q}{Square matrix}
+\item{C}{Square matrix}
 
-\item{E}{Square matrix or \code{NULL}}
+\item{Q}{Square matrix, the orthogonal matrix used
+to transfrom the original equation}
 
 \item{all}{logical}
-
-\item{WKV}{the working vector obtained by a first call to lyapunov solver}
 }
 \value{
-The solution matrix \eqn{X}.
+The solution matrix \code{X} if \code{all = FALSE}. If
+\code{all = TRUE} a list with components \code{X}, \code{B}
+and \code{Q}. Where \code{B} and \code{Q} are the
+Hessenberg-Schur form of the original matrix \code{B}
+and the orthogonal matrix that performed the transformation.
 }
 \description{
-Solve continuous-time Lyapunov/Sylvester equations
 \code{clyap} solve the continuous-time Lyapunov equations
-\deqn{AXE' + EXA'+ Q=0.}
+\deqn{BX + XB' + C=0}
+Using the Bartels-Stewart algorithm with Hessenberg–Schur
+decomposition. Optionally the Hessenberg-Schur
+decomposition can be returned.
 }
 \details{
-\code{clyap} use \code{BKDIS}
-from ALGORITHM 705, COLLECTED ALGORITHMS FROM ACM
+If the matrix \code{Q} is set then the matrix \code{B}
+is assumed to be in upper quasi-triangular form
+(Hessenberg-Schur canonical form),
+as required by LAPACK subroutine \code{DTRSYL} and \code{Q} is
+the orthogonal matrix associated with the Hessenberg-Schur form
+of \code{B}.
+Usually the matrix \code{Q} and the appropriate form of \code{B}
+are obtained by a first call to \code{clyap(B, C, all = TRUE)}
+
+\code{clyap} uses lapack subroutines:
+\itemize{
+\item \code{DGEES}
+\item \code{DTRSYL}
+}
+
+Moreover, some additional subroutines are used from:
+\itemize{
+\item Algorithm 705; a FORTRAN-77 software package for
+solving the Sylvester matrix equation AXBT + CXDT = E
+}
 }
 \examples{
-
+B <- matrix(data = rnorm(9), nrow = 3)
+## make B negative diagonally dominant, thus stable:
+diag(B) <- - 3 * max(B) 
+C <- diag(runif(3))
+X <- clyap(B, C)
+## check it is a solution:
+max(abs(B \%*\% X + X \%*\% t(B) + C)) 
 }
