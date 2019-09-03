@@ -7,7 +7,7 @@
 lowertriangB(Sigma, P = solve(Sigma), C = diag(nrow = nrow(Sigma)))
 }
 \arguments{
-\item{Sigma}{acovariance matrix}
+\item{Sigma}{covariance matrix}
 
 \item{P}{the inverse of the  covariance matrix}
 
