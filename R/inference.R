@@ -6,7 +6,7 @@
 #' \deqn{B\Sigma + \Sigma B' + C = 0}
 #'
 #'
-#' @param Sigma acovariance matrix
+#' @param Sigma covariance matrix
 #' @param P the inverse of the  covariance matrix
 #' @param C symmetric positive definite matrix 
 #'
