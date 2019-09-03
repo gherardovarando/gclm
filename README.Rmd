@@ -40,7 +40,7 @@ B <- matrix(nrow = 4, c(-4, 1,   0,  0,
                          0, -3,  1,  0,
                          0,  0, -2,  1,
                          0,  0,  0, -1), byrow = TRUE)
-D <- diag(c(1,1,1,1))
+D <- diag(c(1,2,1,2))
 C <- D %*% t(D)
 
 ### solve continuous Lyapunov equation 
@@ -49,7 +49,7 @@ C <- D %*% t(D)
 Sigma <- clyap(B, C) 
 
 ### obtain observations from the invariant distribution
-sample <- MASS::mvrnorm(n = 1000, mu = rep(0,4),Sigma =  Sigma)
+sample <- MASS::mvrnorm(n = 10000, mu = rep(0,4),Sigma =  Sigma)
 ``` 
 
 
@@ -59,7 +59,7 @@ sample <- MASS::mvrnorm(n = 1000, mu = rep(0,4),Sigma =  Sigma)
 B0 <- - 0.5 * C %*% solve(cov(sample))
 ### penalized maximum-likelihood solved with proximal gradient
 results <- proxgradllB(cov(sample), B= B0, C = C, eps = 1e-12, 
-                       maxIter = 1000, lambda = 0.05, job = 0)
+                       maxIter = 1000, lambda = 0.05, job = 1)
 results 
 
 ### penalized least square 0.5*||S(B) - Sigma||_2^2 + lambda * ||B||_1,off
@@ -71,7 +71,7 @@ results2$B
 #### Solutions along a regularization path
 
 ```{r}
-results <- llBpath(Sigma, eps = 1e-12, maxIter = 1000, job = 10)
+results <- llBpath(Sigma, eps = 1e-12, maxIter = 1000, job = 11)
 t(sapply(results, function(res) c(lambda = res$lambda, 
                                 npar = sum(res$B!=0),
                                 fp = sum(res$B!=0 & B==0),
@@ -82,6 +82,28 @@ t(sapply(results, function(res) c(lambda = res$lambda,
                                   sum(res$B==0 & B!=0))))
 ```
 
+
+### Estimate $C$ knowing $B$
+
+```{r}
+results <- graddsllc(cov(sample), B, C = diag(4), C0 = diag(4), 
+                      eps = 1e-12, maxIter = 1000, lambda = 0.0005)
+cbind(C = diag(C), Cest = diag(results$C))
+```
+
+### Estimate $B$ and $C$
+
+```{r}
+B0 <- - 0.5 * diag(4) %*% solve(cov(sample))
+results <- pnllbc(cov(sample), B0, C = diag(4), C0 = diag(4), 
+                      eps = 1e-14, maxIter = 1000, intitr = 1,
+                      lambda = 0.05, lambdac = 0.005, job = 0)
+## B estimated
+results$B
+
+## C estimated
+cbind(C = diag(C), Cest = diag(results$C))
+```
 
 ## Related code
 
