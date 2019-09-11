@@ -1005,7 +1005,7 @@ c     compute P*SIGMA - I
       DO 70 K=1,N
          TMPC(K,K) = TMPC(K,K) - 1
  70   CONTINUE
-c     compute (P*SIGMA - I)*P = P*SIGAM*P - P
+c     compute (P*SIGMA - I)*P = P*SIGMA*P - P
       CALL MULB(N, N, N, N, N, TMPC, DELTA, WK)
 c     compute gradient 
       CALL GRADB(N,TMPB,DELTA,S,Q,WK,GRAD,IX)

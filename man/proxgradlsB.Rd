@@ -45,5 +45,5 @@ a list with the output of the optimization:
 \description{
 Optimize the B matrix of a continuous Lyapunov
 Gaussian graphical model (CLGGM) using proximal gradient.
-\deqn{\hat{B} = \arg \min_B LL(B,C) + \lambda||B||_1}
+\deqn{\hat{B} = \arg \min_B ||Sigma - S(B,C)||_2^2 + \lambda||B||_1}
 }

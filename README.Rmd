@@ -93,7 +93,7 @@ cbind(C = diag(C), Cest = diag(results$C))
 B0 <- - 0.5 * diag(4) %*% solve(cov(sample))
 results <- pnllbc(cov(sample), B0, C = diag(4), C0 = diag(4), 
                       eps = 1e-14, maxIter = 1000, intitr = 1,
-                      lambda = 0.05, lambdac = 0.005, job = 0)
+                      lambda = 0.2, lambdac = 0.005, job = 0)
 ## B estimated
 results$B
 
