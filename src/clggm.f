@@ -1,59 +1,3 @@
-      SUBROUTINE TRNATA (NA,N,A)
-C
-C     *****PARAMETERS:
-      INTEGER NA,N
-      DOUBLE PRECISION A(NA,N)
-C
-C     *****LOCAL VARIABLES:
-      INTEGER I,J,NM1,JP1
-      DOUBLE PRECISION TEMP
-C
-C     ------------------------------------------------------------------
-C
-C     *****PURPOSE:
-C     THIS SUBROUTINE REPLACES THE N X N ARRAY A WITH THE TRANSPOSE
-C     OF A.
-C
-C     *****PARAMETER DESCRIPTION:
-C
-C     ON INPUT:
-C
-C        NA               ROW DIMENSION OF THE ARRAY CONTAINING A AS
-C                         DECLARED IN THE CALLING PROGRAM DIMENSION
-C                         STATEMENT;
-C
-C        N                ORDER OF THE MATRIX A;
-C
-C        A                AN N X N MATRIX.
-
-C     ON OUTPUT:
-C
-C        A                AN N X N ARRAY CONTAINING THE TRANSPOSE OF THE
-C                         INPUT MATRIX A.
-C
-C     *****HISTORY:
-C     WRITTEN BY ALAN J. LAUB (ELEC. SYS. LAB., M.I.T., RM. 35-331,
-C     CAMBRIDGE, MA 02139,  PH.: (617)-253-2125), SEPTEMBER 1977.
-C     MOST RECENT VERSION: SEP. 21, 1977.
-C
-C     ------------------------------------------------------------------
-C
-      IF (N.EQ.1) RETURN
-      NM1 = N- 1
-      DO 20 J=1,NM1
-         JP1=J+1
-         DO 10 I=JP1,N
-            TEMP=A(I,J)
-            A(I,J)=A(J,I)
-            A(J,I)=TEMP
-10       CONTINUE
-20    CONTINUE
-      RETURN
-C
-C     LAST LINE OF TRNATA
-C
-      END
-c
       SUBROUTINE MQFWO (NS,NX,N,S,X,WORK)
 C
 C     *****PARAMETERS:
@@ -658,6 +602,8 @@ c     IF JOB .GT. 0 DGELYP assume the matrix A is already in Schur form
 c     and Q contains the orthogonal matrix that transfromed it into the
 c     Schur form, moreover A is assumed to be stable and no check is
 c     performed. 
+c     IF JOB .GE. 2 the solution is not back-tranformed with the
+c     orthogonal matrix Q. Thus QXQ**T is actually returned
 c     internal variables
       INTEGER K,SDIM, UNO,INDR,INDI,INDW
       LOGICAL BWORK(N)
@@ -690,11 +636,10 @@ c      CALL MQFWO(N,N,N,C,Q,WK)
 c     solve associated sylvester equation
       CALL DTRSYL('N', 'T', UNO, N, N, A, N, A, N, C, N, SCA, INFO)
 cc     transform C into QCQ**T
-c      CALL TRNATA(N,N,Q)
-c      CALL MQFWO(N,N,N,C,Q,WK)
-c      CALL TRNATA(N,N,Q)
-      CALL DGEMM('N','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
-      CALL DGEMM('N','T',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
+      IF (JOB .LT. 2) THEN
+         CALL DGEMM('N','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
+         CALL DGEMM('N','T',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
+      ENDIF
  900  CONTINUE
       RETURN
 c     last line of DGELYP
@@ -729,6 +674,8 @@ c local variables
             GRAD(I,J) = 0
   700    CONTINUE         
   710 CONTINUE
+c  transform D to Q**TDQ
+      CALL MQFWO(N,N,N,D,Q,WK)
 c  compute gradient
       DO 730 I = 1, N
          DO 720 J = 1, N
@@ -738,7 +685,7 @@ c  compute gradient
                   TEMPC(K,I) = S(K,J) 
   715          CONTINUE          
                TEMPC(I,I) =  2 * S(J,I)
-               CALL DGELYP(N, B, TEMPC, Q, WK, 1, INFO)
+               CALL DGELYP(N, B, TEMPC, Q, WK, 3, INFO)
                DO 717 JJ = 1, N 
                   DO 716 II = 1, N
                      GRAD(I,J) = GRAD(I,J) - TEMPC(II,JJ) * D(II,JJ)
