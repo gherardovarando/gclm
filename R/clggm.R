@@ -127,7 +127,7 @@ proxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
 #' 
 #' Optimize the B matrix of a continuous Lyapunov 
 #' Gaussian graphical model (CLGGM) using proximal gradient. 
-#' \deqn{\hat{B} = \arg \min_B LL(B,C) + \lambda||B||_1}
+#' \deqn{\hat{B} = \arg \min_B ||Sigma - S(B,C)||_2^2 + \lambda||B||_1}
 #' 
 #' @param Sigma the observed covariance matrix
 #' @param B an initial B matrix
@@ -312,7 +312,7 @@ pnllbc <- function(Sigma, B, C = diag(ncol(Sigma)),
                   PACKAGE = "clggm")
   names(out) <- c("N", "Sigma", "B", "C", "C0", "lambda", "lambdac",
                   "diff", "objective", 
-                  "beta", "iter", "job")
+                  "beta", "iter", "intiter", "job")
   out$Sigma <- matrix(nrow = out$N, out$Sigma)
   out$B <- matrix(nrow = out$N, out$B)
   out$C <- diag(out$C)
