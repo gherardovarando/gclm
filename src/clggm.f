@@ -628,9 +628,9 @@ c        check stability of A, if no stable return with INFO = -1
   10     CONTINUE
       ENDIF
 c     Transform C into Q**TCQ and save into C
-c       transform C into  Q**TC and save into C
+c       transform C into  Q**TC and save into TMP
       CALL DGEMM('T','N',N,N,N,ONE,Q,N,C,N,ZERO,TMP,N)
-c       transform C into CQ and save into C
+c       transform TMP into CQ and save into C
       CALL DGEMM('N','N',N,N,N,ONE,TMP,N,Q,N,ZERO,C,N)
 c      CALL MQFWO(N,N,N,C,Q,WK)
 c     solve associated sylvester equation
@@ -686,9 +686,9 @@ c  compute gradient
   715          CONTINUE          
                TEMPC(I,I) =  2 * S(J,I)
                CALL DGELYP(N, B, TEMPC, Q, WK, 3, INFO)
-               DO 717 JJ = 1, N 
+               DO 717 JJ = 1, N
                   DO 716 II = 1, N
-                     GRAD(I,J) = GRAD(I,J) - TEMPC(II,JJ) * D(II,JJ)
+                     GRAD(I,J) = GRAD(I,J) - TEMPC(II,JJ)*D(II,JJ)
                      TEMPC(II, JJ) = 0
   716             CONTINUE
   717          CONTINUE              
