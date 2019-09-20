@@ -4,8 +4,8 @@
 \alias{llBpath}
 \title{Path of B estimates (log-lik)}
 \usage{
-llBpath(Sigma, lambdas = NULL, C = diag(nrow(Sigma)), eps = 1e-08,
-  maxIter = 1000, job = 10)
+llBpath(Sigma, lambdas = NULL, C = diag(nrow(Sigma)), B0 = NULL,
+  eps = 1e-08, maxIter = 1000, job = 11)
 }
 \arguments{
 \item{Sigma}{empirical covariance matrix}
