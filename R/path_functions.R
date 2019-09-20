@@ -59,3 +59,4 @@ lsBpath <- function(Sigma, lambdas = NULL,
   }
   return(results)
 } 
+
