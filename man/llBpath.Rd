@@ -14,11 +14,13 @@ llBpath(Sigma, lambdas = NULL, C = diag(nrow(Sigma)), B0 = NULL,
 
 \item{C}{the known C = DD'}
 
+\item{B0}{initial B matrix}
+
 \item{eps}{convergence criteria}
 
 \item{maxIter}{maximum iterations for each proximal gradient}
 
-\item{job}{integer flag (0,1,10,11)}
+\item{job}{integer flag (0,1,10,11) as in \code{\link{proxgradllB}}}
 }
 \description{
 Path of B estimates (log-lik)

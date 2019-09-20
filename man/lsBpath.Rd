@@ -2,10 +2,10 @@
 % Please edit documentation in R/path_functions.R
 \name{lsBpath}
 \alias{lsBpath}
-\title{Path of B estimates}
+\title{Path of B estimates (frobenius)}
 \usage{
-lsBpath(Sigma, lambdas = NULL, C = diag(nrow(Sigma)), eps = 1e-08,
-  maxIter = 1000, job = 10)
+lsBpath(Sigma, lambdas = NULL, C = diag(nrow(Sigma)), B0 = NULL,
+  eps = 1e-08, maxIter = 1000, job = 10)
 }
 \arguments{
 \item{Sigma}{empirical covariance matrix}
@@ -14,6 +14,8 @@ lsBpath(Sigma, lambdas = NULL, C = diag(nrow(Sigma)), eps = 1e-08,
 
 \item{C}{the known C = DD'}
 
+\item{B0}{the initial B matrix}
+
 \item{eps}{convergence criteria}
 
 \item{maxIter}{maximum iterations for each proximal gradient}
@@ -21,5 +23,5 @@ lsBpath(Sigma, lambdas = NULL, C = diag(nrow(Sigma)), eps = 1e-08,
 \item{job}{integer flag (0,1,10,11)}
 }
 \description{
-Path of B estimates
+Path of B estimates (frobenius)
 }
