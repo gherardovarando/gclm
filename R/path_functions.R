@@ -65,3 +65,58 @@ lsBpath <- function(Sigma, lambdas = NULL,
   return(results)
 } 
 
+#' @rdname llBpath
+#' @param replicates integer 
+#' @param data the dataset 
+#' @export
+llBstabilitypath <- function(data, replicates = 100, lambdas = NULL, 
+                             C = diag(ncol(data)),
+                             B0 = NULL,
+                             eps = 1e-8, maxIter = 1000, 
+                             job = 11){
+  if (is.null(lambdas)) {
+    lambdas = seq(0, 1, length = 10)
+  }
+  N <- nrow(data)
+  p <- ncol(data)
+  results <- replicate(replicates, {
+    idx <- sample(N, size = floor(N / 2), replace = FALSE)
+    Sigma <- cor(data[idx,])
+    path <- llBpath(Sigma, lambdas = lambdas, 
+            C = C,
+            B0 = B0,
+            eps = eps, maxIter = maxIter, 
+            job = job)
+    sapply(path, FUN = function(res) sign(abs(res$B)))
+  })
+  array(apply(results, MARGIN = c(1,2), mean), 
+        dim = c(p,p,length(lambdas)))
+} 
+
+#' @rdname lsBpath
+#' @param replicates integer 
+#' @param data the dataset 
+#' @export
+lsBstabilitypath <- function(data, replicates = 100, lambdas = NULL, 
+                             C = diag(ncol(data)),
+                             B0 = NULL,
+                             eps = 1e-8, maxIter = 1000, 
+                             job = 11){
+  if (is.null(lambdas)) {
+    lambdas = seq(0, 1, length = 10)
+  }
+  N <- nrow(data)
+  p <- ncol(data)
+  results <- replicate(replicates, {
+    idx <- sample(N, size = floor(N / 2), replace = FALSE)
+    Sigma <- cor(data[idx,])
+    path <- lsBpath(Sigma, lambdas = lambdas, 
+                    C = C,
+                    B0 = B0,
+                    eps = eps, maxIter = maxIter, 
+                    job = job)
+    sapply(path, FUN = function(res) sign(abs(res$B)))
+  })
+  array(apply(results, MARGIN = c(1,2), mean), 
+        dim = c(p,p,length(lambdas)))
+} 
