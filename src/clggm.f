@@ -698,6 +698,60 @@ c  compute gradient
       RETURN
 c     last line of GRADB
       END
+      SUBROUTINE SKGRDB(N,B,D,S,Q,WK,GRAD,IX,L)
+      INTEGER N, IX(N * N), L
+      DOUBLE PRECISION B(N,N),D(N,N),S(N,N),Q(N,N),GRAD(N,N),WK(5*N)
+c local variables
+      INTEGER I,J,K, INFO
+      DOUBLE PRECISION TEMPC(N,N), DIR(N,N), TMP, CFF
+      DO 20  I = 1, N
+         DO 10 J = 1, N
+            TEMPC(I,J) = 0
+            GRAD(I,J) = 0
+  10    CONTINUE         
+  20  CONTINUE
+      IF (L .LT. 0) L = N
+c  transform D to Q**TDQ
+      CALL MQFWO(N,N,N,D,Q,WK)
+c  sketch gradient
+      DO 90 K = 1, L
+         CFF = 0
+         DO 40 J = 1, N 
+            DO 30 I = 1, N
+               IF (IX((J - 1) * N + I) .EQ. 1) THEN
+                  TEMPC(I,J) = 2*RAND(0) - 1
+                  CFF = CFF + TEMPC(I,J) ** 2
+               ELSE 
+                  TEMPC = 0
+               ENDIF 
+               DIR(I,J) = TEMPC(I,J)
+  30        CONTINUE
+  40     CONTINUE
+         CALL MULA(N, N, N, N, N, TEMPC, S, WK)
+         DO 45 J= 1,N
+            DO 42 I = J,N
+               TEMPC(I,J) = TEMPC(I,J) + TEMPC(J,I)  
+               TEMPC(J,I) = TEMPC(I,J)
+  42        CONTINUE
+  45     CONTINUE
+         CALL DGELYP(N, B, TEMPC, Q, WK, 3, INFO)
+         TMP = 0 
+         DO 60 J = 1, N
+            DO 50 I = 1, N
+               TMP = TMP + TEMPC(I,J)*D(I,J)
+  50        CONTINUE
+  60     CONTINUE
+         DO 80 J = 1, N
+            DO 70 I = 1, N
+               GRAD(I,J) = GRAD(I,J) - TMP * DIR(I,J) / (L * CFF) 
+               TEMPC(I,J) = 0
+c               DIR(I,J) = 0
+  70        CONTINUE
+  80     CONTINUE
+  90  CONTINUE       
+      RETURN
+c     last line of SKGRDB
+      END     
       SUBROUTINE GRADCD(N,B,D,Q,WK,GRAD)
       INTEGER N 
       DOUBLE PRECISION B(N,N),D(N,N),Q(N,N),WK(5*N),GRAD(N)
@@ -862,8 +916,8 @@ c     internal variables
       RETURN
 c     last line of JACLLB
       END
-      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB)
-      INTEGER N,MAXITR,JOB
+      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB,SK)
+      INTEGER N,MAXITR,JOB,SK
       DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
 c     PRXGRDLLB perform proximal gradient algorithm on the
 c     entries of the B matrix of a CLGGM to solve the 
@@ -896,6 +950,9 @@ c                 10 - only non-zero entries of initial B
 c                 11 - starting from non-zero entries of B and 
 c                      updating at each iteration the non-zero 
 c                      entries
+c           SK    integer
+c                 If SK .GT. 0 then sketch gradient with SK random
+c                 directions. If SK .LE. 0 compute ordinar gradient. 
 c 
 c     ON RETURN
 c          SIGMA  double precision (N,N)
@@ -919,6 +976,7 @@ c     copy C,B and initialize IX
       ZERO = 0.0
       RCOND = 0.0
       IERR = 0
+      STEP = 1
       DO 20 J = 1,N
          DO 10 I = 1,N
             IX((J-1)*N + I) = 1
@@ -954,15 +1012,27 @@ c     compute P*SIGMA - I
  70   CONTINUE
 c     compute (P*SIGMA - I)*P = P*SIGMA*P - P
       CALL MULB(N, N, N, N, N, TMPC, DELTA, WK)
-c     compute gradient 
-      CALL GRADB(N,TMPB,DELTA,S,Q,WK,GRAD,IX)
+c     natural gradient 
+c      CALL MULA(N, N, N, N, N, DELTA, S, WK) 
+c      DO 75 J = 1,N
+c         DO 72 I = J,N
+c            DELTA(I,J) = DELTA(I,J) + DELTA(J,I) 
+c            DELTA(J,J) = DELTA(I,J)  
+c 72      CONTINUE
+c 75   CONTINUE
+c     compute gradient (sketched) 
+      IF (SK .GT. 0) THEN
+         CALL SKGRDB(N, TMPB, DELTA, S, Q, WK, GRAD, IX, SK)
+      ELSE 
+         CALL GRADB(N, TMPB, DELTA, S, Q, WK, GRAD, IX)
+      ENDIF
 c     copy old B before starting line search 
       DO 90 J = 1,N
          DO 80 I = 1,N
             BOLD(I,J) = B(I,J)
   80     CONTINUE          
   90  CONTINUE 
-      STEP = 1
+c      STEP = 1
 c     line search loop here
   600 CONTINUE     
 c     gradient step
@@ -1547,7 +1617,7 @@ c     internal varaibles
       TMPEPS = EPS
       TMPMAXITR = INTITR
       CALL PRXGRDLLB(N, TMPS, B, TMPC, 
-     *TMPLAMBDA,TMPEPS,TMPALPHA,TMPMAXITR,JOB)
+     *TMPLAMBDA,TMPEPS,TMPALPHA,TMPMAXITR,JOB, -1)
       TMPLAMBDAC = LAMBDAC
       TMPALPHA = ALPHA 
       TMPEPS = EPS
