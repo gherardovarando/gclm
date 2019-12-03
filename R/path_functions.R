@@ -13,7 +13,7 @@ llBpath <- function(Sigma, lambdas = NULL,
                     C = diag(nrow(Sigma)),
                     B0 = NULL,
                     eps = 1e-8, maxIter = 1000, 
-                    job = 11){
+                    job = 0){
   if (is.null(lambdas)) {
     lambdas = seq(0, max(diag(Sigma)), length = 10)
   }
@@ -81,16 +81,20 @@ llBstabilitypath <- function(data, replicates = 100, lambdas = NULL,
   p <- ncol(data)
   results <- replicate(replicates, {
     idx <- sample(N, size = floor(N / 2), replace = FALSE)
-    Sigma <- cor(data[idx,])
-    path <- llBpath(Sigma, lambdas = lambdas, 
+    Strain <- cov(data[idx,])
+    Stest <- cov(data[-idx,])
+    path <- llBpath(Strain, lambdas = lambdas, 
             C = C,
             B0 = B0,
             eps = eps, maxIter = maxIter, 
             job = job)
-    sapply(path, FUN = function(res) sign(abs(res$B)))
+    loss <- sapply(path, function(res){
+      mll(solve(res$Sigma), Stest)  
+    })
+    bidx <- which.min(loss)
+    return(sign(abs(path[[bidx]]$B)))
   })
-  array(apply(results, MARGIN = c(1,2), mean), 
-        dim = c(p,p,length(lambdas)))
+  apply(results, MARGIN = c(1,2), mean)
 } 
 
 #' @rdname lsBpath
@@ -109,14 +113,18 @@ lsBstabilitypath <- function(data, replicates = 100, lambdas = NULL,
   p <- ncol(data)
   results <- replicate(replicates, {
     idx <- sample(N, size = floor(N / 2), replace = FALSE)
-    Sigma <- cor(data[idx,])
-    path <- lsBpath(Sigma, lambdas = lambdas, 
+    Strain <- cov(data[idx,])
+    Stest <- cov(data[-idx,])
+    path <- lsBpath(Strain, lambdas = lambdas, 
                     C = C,
                     B0 = B0,
                     eps = eps, maxIter = maxIter, 
                     job = job)
-    sapply(path, FUN = function(res) sign(abs(res$B)))
+    loss <- sapply(path, function(res){
+      sum((res$Sigma - Stest) ^ 2)  
+    })
+    bidx <- which.min(loss)
+    return(sign(abs(path[[bidx]]$B)))
   })
-  array(apply(results, MARGIN = c(1,2), mean), 
-        dim = c(p,p,length(lambdas)))
+  apply(results, MARGIN = c(1,2), mean)
 } 

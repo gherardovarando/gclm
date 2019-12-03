@@ -113,7 +113,7 @@ proxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
                  as.double(B), 
           as.double(C), as.double(lambda), as.double(eps),
           as.double(alpha), as.integer(maxIter),
-          as.integer(job), 
+          as.integer(job),
           PACKAGE = "clggm")
  names(out) <- c("N", "Sigma", "B", "C", "lambda", "diff", 
                  "objective", "iter", "job")

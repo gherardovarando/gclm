@@ -666,89 +666,28 @@ c     denotes the solution of the Lyapunov equation
 c     BS + SB'+ C = 0
 c
 c local variables
-      INTEGER I,J,II,JJ,K, INFO
-      DOUBLE PRECISION TEMPC(N,N)
-      DO 710  I = 1, N
-         DO 700 J = 1, N
-            TEMPC(I,J) = 0
-            GRAD(I,J) = 0
-  700    CONTINUE         
-  710 CONTINUE
-c  transform D to Q**TDQ
-      CALL MQFWO(N,N,N,D,Q,WK)
-c  compute gradient
-      DO 730 I = 1, N
-         DO 720 J = 1, N
-            IF (IX((J-1) * N + I) .EQ. 1) THEN
-               DO 715 K = 1, N
-                  TEMPC(I,K) = S(J,K)
-                  TEMPC(K,I) = S(K,J) 
-  715          CONTINUE          
-               TEMPC(I,I) =  2 * S(J,I)
-               CALL DGELYP(N, B, TEMPC, Q, WK, 3, INFO)
-               DO 717 JJ = 1, N
-                  DO 716 II = 1, N
-                     GRAD(I,J) = GRAD(I,J) - TEMPC(II,JJ)*D(II,JJ)
-                     TEMPC(II, JJ) = 0
-  716             CONTINUE
-  717          CONTINUE              
-            ENDIF 
-  720    CONTINUE
-  730 CONTINUE       
+      INTEGER I, J, INFO
+      DOUBLE PRECISION  TEMPB(N,N), TMPQ(N,N)
+      DO 20 J = 1, N
+         DO 10 I = 1, N
+            TEMPB(I,J) = B(N - J + 1, N - I + 1) 
+            TMPQ(I,J) = Q(I,N-J + 1)  
+  10    CONTINUE         
+  20  CONTINUE
+      CALL DGELYP(N, TEMPB, D, TMPQ, WK, 1, INFO)
+      CALL MULA(N, N, N, N, N, D, S, WK) 
+      DO 40 J = 1, N
+        DO 30 I = 1, N
+        IF (IX(I + (J-1)*N) .EQ. 1) THEN
+           GRAD(I,J) = - 2 * D(I,J) 
+        ELSE
+           GRAD(I,J) = 0 
+        ENDIF
+  30    CONTINUE         
+  40  CONTINUE     
       RETURN
 c     last line of GRADB
       END
-      SUBROUTINE SKGRDB(N,B,D,S,Q,WK,GRAD,IX,L,U,VT)
-c     sketching a gradient
-      INTEGER N, IX(N * N) 
-      DOUBLE PRECISION B(N,N),D(N,N),S(N,N),Q(N,N),
-     *GRAD(N,N),WK(5*N), U(N,N), VT(N,N)
-c local variables
-      INTEGER I,J,K, INFO
-      DOUBLE PRECISION TEMPC(N,N), DIR(N,N), TMP
-      DO 20  I = 1, N
-         DO 10 J = 1, N
-            TEMPC(I,J) = 0
-            GRAD(I,J) = 0
-  10    CONTINUE         
-  20  CONTINUE
-      IF (L .LT. 0) L = N
-      IF (L .GT. N) L = N
-c  transform D to Q**TDQ
-      CALL MQFWO(N,N,N,D,Q,WK)
-c  sketch gradient
-      DO 90 K = 1, L
-         DO 40 J = 1, N 
-            DO 30 I = 1, N
-               TEMPC(I,J) = U(I,L) * VT(L,J) 
-               DIR(I,J) = TEMPC(I,J)
-  30        CONTINUE
-  40     CONTINUE
-         CALL MULA(N, N, N, N, N, TEMPC, S, WK)
-         DO 45 J= 1,N
-            DO 42 I = J,N
-               TEMPC(I,J) = TEMPC(I,J) + TEMPC(J,I)  
-               TEMPC(J,I) = TEMPC(I,J)
-  42        CONTINUE
-  45     CONTINUE
-         CALL DGELYP(N, B, TEMPC, Q, WK, 3, INFO)
-         TMP = 0 
-         DO 60 J = 1, N
-            DO 50 I = 1, N
-               TMP = TMP + TEMPC(I,J)*D(I,J)
-  50        CONTINUE
-  60     CONTINUE
-         DO 80 J = 1, N
-            DO 70 I = 1, N
-               GRAD(I,J) = GRAD(I,J) - TMP * DIR(I,J)  
-               TEMPC(I,J) = 0
-c               DIR(I,J) = 0
-  70        CONTINUE
-  80     CONTINUE
-  90  CONTINUE       
-      RETURN
-c     last line of SKGRDB
-      END     
       SUBROUTINE GRADCD(N,B,D,Q,WK,GRAD)
       INTEGER N 
       DOUBLE PRECISION B(N,N),D(N,N),Q(N,N),WK(5*N),GRAD(N)
@@ -913,8 +852,8 @@ c     internal variables
       RETURN
 c     last line of JACLLB
       END
-      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB,SK)
-      INTEGER N,MAXITR,JOB,SK
+      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB)
+      INTEGER N,MAXITR,JOB
       DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
 c     PRXGRDLLB perform proximal gradient algorithm on the
 c     entries of the B matrix of a CLGGM to solve the 
@@ -947,9 +886,6 @@ c                 10 - only non-zero entries of initial B
 c                 11 - starting from non-zero entries of B and 
 c                      updating at each iteration the non-zero 
 c                      entries
-c           SK    integer
-c                 If SK .GT. 0 then sketch gradient with SK random
-c                 directions. If SK .LE. 0 compute ordinar gradient. 
 c 
 c     ON RETURN
 c          SIGMA  double precision (N,N)
@@ -982,6 +918,7 @@ c     copy C,B,SIGMA and initialize IX
             TMPC(I,J) = -C(I,J) 
             TMPB(I,J) = B(I,J)
             S(I,J) = B(I,J)
+            GRAD(I,J) = 0 
   10     CONTINUE          
   20  CONTINUE          
       CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
@@ -1011,20 +948,7 @@ c     compute P*SIGMA - I
  70   CONTINUE
 c     compute (P*SIGMA - I)*P = P*SIGMA*P - P
       CALL MULB(N, N, N, N, N, TMPC, DELTA, WK)
-c     compute gradient (sketched) 
-      IF (SK .GT. 0) THEN
-c     obtain SVD of B
-      DO 72 J=1,N
-         DO 71 I=1,N
-            BOLD(I,J) = RAND(0) 
-  71     CONTINUE
-  72  CONTINUE
-      CALL DGESVD("A", "A", N, N,BOLD,N,WK,U,N,VT,N,WK(N + 1),
-     *6*N, INFO)
-         CALL SKGRDB(N, TMPB, DELTA, S, Q, WK, GRAD, IX, SK, U, VT)
-      ELSE 
-         CALL GRADB(N, TMPB, DELTA, S, Q, WK, GRAD, IX)
-      ENDIF
+      CALL GRADB(N, TMPB, DELTA, S, Q, WK, GRAD, IX)
 c     copy old B before starting line search 
       DO 90 J = 1,N
          DO 80 I = 1,N
@@ -1117,8 +1041,8 @@ c     update value of objective function and repeat
       RETURN
 c     last line of PRXGRDLLB
       END
-      SUBROUTINE PRXGRDLSB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB,SK)
-      INTEGER N,MAXITR,JOB,SK
+      SUBROUTINE PRXGRDLSB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB)
+      INTEGER N,MAXITR,JOB
       DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
 c     PRXGRDLSB perform proximal gradient algorithm on the
 c     entries of the B matrix of a CLGGM to solve the 
@@ -1193,19 +1117,7 @@ c     copy the C matrix and initialize E as indentity
 c     main loop here, increase iteration counter
  500  CONTINUE      
       ITR = ITR + 1
-c     compute gradient (sketched) 
-      IF (SK .GT. 0 .AND. ITR .GT. 1) THEN
-         DO 75 J = 1,N
-            DO 70 I = 1,N
-               BOLD(I,J) = RAND(0)
-  70        CONTINUE 
-  75     CONTINUE             
-         CALL DGESVD("A", "A", N, N,BOLD,N,WK,U,N,VT,N,WK(N + 1),
-     *   6*N, INFO)
-         CALL SKGRDB(N, TMPB, DELTA, TMPC, Q, WK, GRAD, IX, SK, U, VT)
-      ELSE 
-         CALL GRADB(N, TMPB, DELTA, TMPC, Q, WK, GRAD, IX)
-      ENDIF
+      CALL GRADB(N, TMPB, DELTA, TMPC, Q, WK, GRAD, IX)
 c     copy old B before starting line search 
       DO 90 J = 1,N
          DO 80 I = 1,N
@@ -1627,7 +1539,7 @@ c     internal varaibles
       TMPEPS = EPS
       TMPMAXITR = INTITR
       CALL PRXGRDLLB(N, TMPS, B, TMPC, 
-     *TMPLAMBDA,TMPEPS,TMPALPHA,TMPMAXITR,JOB, -1)
+     *TMPLAMBDA,TMPEPS,TMPALPHA,TMPMAXITR,JOB)
       TMPLAMBDAC = LAMBDAC
       TMPALPHA = ALPHA 
       TMPEPS = EPS
