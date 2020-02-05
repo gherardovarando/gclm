@@ -679,7 +679,7 @@ c local variables
       DO 40 J = 1, N
         DO 30 I = 1, N
         IF (IX(I + (J-1)*N) .EQ. 1) THEN
-           GRAD(I,J) = - 2 * D(I,J) 
+           GRAD(I,J) = 2 * D(I,J) 
         ELSE
            GRAD(I,J) = 0 
         ENDIF
@@ -701,25 +701,18 @@ c     denotes the solution of the Lyapunov equation
 c     BS + SB'+ C = 0
 c
 c local variables
-      INTEGER I,J,II,JJ,K,INFO
-      DOUBLE PRECISION TEMPC(N,N)
-      DO 710  J = 1, N
-         DO 700 I = 1, N
-            TEMPC(I,J) = 0
-  700    CONTINUE         
-         GRAD(J) = 0
-  710 CONTINUE
-c  compute gradient
-         DO 720 J = 1, N
-               TEMPC(J,J) = -2
-               CALL DGELYP(N, B, TEMPC, Q, WK, 1, INFO)
-               DO 717 JJ = 1, N 
-                  DO 716 II = 1, N
-                     GRAD(J) = GRAD(J) + TEMPC(II,JJ) * D(II,JJ)
-  716             CONTINUE
-  717          CONTINUE              
-               TEMPC(J,J)=0
-  720    CONTINUE
+      INTEGER I, J, INFO
+      DOUBLE PRECISION  TEMPB(N,N), TMPQ(N,N)
+      DO 20 J = 1, N
+         DO 10 I = 1, N
+            TEMPB(I,J) = B(N - J + 1, N - I + 1) 
+            TMPQ(I,J) = Q(I,N-J + 1)  
+  10    CONTINUE         
+  20  CONTINUE
+      CALL DGELYP(N, TEMPB, D, TMPQ, WK, 1, INFO)
+      DO 40 J = 1, N
+         GRAD(J) = 2 * D(J,J) 
+  40  CONTINUE      
       RETURN
 c     last line of GRADCD
       END
@@ -900,8 +893,7 @@ c     internal variables
       INTEGER I,J,K,IPVT(N),INFO, IX(N*N), ITER
       DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),
      *TMPB(N,N),F,FNW,DET(2),WK(7*N), S(N,N), STEP,
-     *BOLD(N,N), DIFFB, LTEN, UNO, ZERO, MUNO, DELTA(N,N),
-     *U(N,N), VT(N,N)
+     *BOLD(N,N), DIFFB, LTEN, UNO, ZERO, MUNO, DELTA(N,N)
       LTEN = LOG(10.0)
 c     copy C,B,SIGMA and initialize IX 
       ITR = 0
@@ -961,7 +953,7 @@ c     line search loop here
 c     gradient step
       DO 110 J = 1,N
          DO 100 I = 1,N
-            B(I,J) = BOLD(I,J) + STEP * GRAD(I,J) 
+            B(I,J) = BOLD(I,J) - STEP * GRAD(I,J) 
   100    CONTINUE
   110 CONTINUE
 c     soft thresholding
@@ -1130,7 +1122,7 @@ c     line search loop here
 c     gradient step
       DO 110 J = 1,N
          DO 100 I = 1,N
-            B(I,J) = BOLD(I,J) + STEP * GRAD(I,J) 
+            B(I,J) = BOLD(I,J) - STEP * GRAD(I,J) 
   100    CONTINUE
   110 CONTINUE
 c     soft thresholding off diag entries
@@ -1445,7 +1437,7 @@ c     compute gradient
       CALL GRADCD(N,TMPB,DELTA,Q,WK,GRAD)
       NG = 0
       DO 80 J = 1,N
-       GRAD(J) = GRAD(J) - 2 * LAMBDA * (C(J) - CZ(J)) 
+       GRAD(J) = GRAD(J) + 2 * LAMBDA * (C(J) - CZ(J)) 
        NG = NG + GRAD(J) ** 2
   80  CONTINUE
 c     copy old C before starting line search 
@@ -1457,7 +1449,7 @@ c     line search loop here
   600 CONTINUE     
 c     gradient step
       DO 110 J = 1,N
-            C(J) = COLD(J) + STEP * GRAD(J) 
+            C(J) = COLD(J) - STEP * GRAD(J) 
             IF (C(J) .LE. 0) THEN
                     STEP = STEP * ALPHA 
                     GOTO 600
@@ -1554,6 +1546,11 @@ c     internal varaibles
       IF (ITR .LT. MAXITR) GOTO 10
       MAXITR = ITR
       ALPHA = TMPALPHA
-      EPS = TMPEPS
+       DO 70 J=1,N
+         DO 60 I=1,N
+            SIGMA(I,J)=TMPS(I,J)
+ 60   CONTINUE
+ 70   CONTINUE
+     EPS = TMPEPS
       RETURN
       END
