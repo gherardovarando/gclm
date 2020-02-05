@@ -652,224 +652,26 @@ c     logical function as parameter of DGEES
               RETURN
       END
 c
-c
-      SUBROUTINE GRADB(N,B,D,S,Q,WK,GRAD,IX)
-      INTEGER N, IX(N * N) 
-      DOUBLE PRECISION B(N,N),D(N,N),S(N,N),Q(N,N),GRAD(N,N),WK(5*N)
-c     Subroutine GRADB
-c 
-c     GradB computee the gradient  
-c     with respect to the entries of the B matrix. 
-c     In particular it computes the gradient 
-c     df/dB = JS(B) dg/dS   where f(B) = g(S(B)) and S(B)
-c     denotes the solution of the Lyapunov equation
-c     BS + SB'+ C = 0
-c
-c local variables
-      INTEGER I, J, INFO
-      DOUBLE PRECISION  TEMPB(N,N), TMPQ(N,N)
-      DO 20 J = 1, N
-         DO 10 I = 1, N
-            TEMPB(I,J) = B(N - J + 1, N - I + 1) 
-            TMPQ(I,J) = Q(I,N-J + 1)  
-  10    CONTINUE         
-  20  CONTINUE
-      CALL DGELYP(N, TEMPB, D, TMPQ, WK, 1, INFO)
-      CALL MULA(N, N, N, N, N, D, S, WK) 
-      DO 40 J = 1, N
-        DO 30 I = 1, N
-        IF (IX(I + (J-1)*N) .EQ. 1) THEN
-           GRAD(I,J) = - 2 * D(I,J) 
-        ELSE
-           GRAD(I,J) = 0 
-        ENDIF
-  30    CONTINUE         
-  40  CONTINUE     
-      RETURN
-c     last line of GRADB
-      END
-      SUBROUTINE GRADCD(N,B,D,Q,WK,GRAD)
-      INTEGER N 
-      DOUBLE PRECISION B(N,N),D(N,N),Q(N,N),WK(5*N),GRAD(N)
-c     Subroutine GRADCD
-c 
-c     GRADCD computes the gradient  
-c     with respect to the diagonal entries of the C matrix. 
-c     In particular it computes the gradient 
-c     df/dC = JS(B,C) dg/dS   where f(B) = g(S(B)) and S(B)
-c     denotes the solution of the Lyapunov equation
-c     BS + SB'+ C = 0
-c
-c local variables
-      INTEGER I,J,II,JJ,K,INFO
-      DOUBLE PRECISION TEMPC(N,N)
-      DO 710  J = 1, N
-         DO 700 I = 1, N
-            TEMPC(I,J) = 0
-  700    CONTINUE         
-         GRAD(J) = 0
-  710 CONTINUE
-c  compute gradient
-         DO 720 J = 1, N
-               TEMPC(J,J) = -2
-               CALL DGELYP(N, B, TEMPC, Q, WK, 1, INFO)
-               DO 717 JJ = 1, N 
-                  DO 716 II = 1, N
-                     GRAD(J) = GRAD(J) + TEMPC(II,JJ) * D(II,JJ)
-  716             CONTINUE
-  717          CONTINUE              
-               TEMPC(J,J)=0
-  720    CONTINUE
-      RETURN
-c     last line of GRADCD
-      END
-      SUBROUTINE GRADC(N,B,D,Q,WK,GRAD,IX)
-      INTEGER N, IX(N * N) 
-      DOUBLE PRECISION B(N,N),D(N,N),Q(N,N),WK(5*N),
-     *GRAD(N,N)
-c     Subroutine GRADC
-c 
-c     GRADC computes the gradient  
-c     with respect to the entries of the C matrix. 
-c     In particular it computes the gradient 
-c     df/dC = JS(B,C) dg/dS   where f(B) = g(S(B)) and S(B)
-c     denotes the solution of the Lyapunov equation
-c     BS + SB'+ C = 0
-c
-c local variables
-      INTEGER I,J,II,JJ,K,INFO
-      DOUBLE PRECISION TEMPC(N,N)
-      DO 710  I = 1, N
-         DO 700 J = 1, N
-            TEMPC(I,J) = 0
-            GRAD(I,J) = 0
-  700    CONTINUE         
-  710 CONTINUE
-c  compute gradient
-      DO 730 I = 1, N
-         DO 720 J = 1, N
-            IF (IX((J-1) * N + I) .EQ. 1) THEN
-               TEMPC(I,J) = TEMPC(I,J) - 1
-               TEMPC(J,I) = TEMPC(J,I) - 1
-               CALL DGELYP(N, B, TEMPC, Q, WK, 1, INFO)
-               DO 717 JJ = 1, N 
-                  DO 716 II = 1, N
-                     GRAD(I,J) = GRAD(I,J) + TEMPC(II,JJ) * D(II,JJ)
-  716             CONTINUE
-  717          CONTINUE              
-               TEMPC(I,J)=0
-               TEMPC(J,I)=0
-            ENDIF 
-  720    CONTINUE
-  730 CONTINUE       
-      RETURN
-c     last line of GRADC
-      END
-      SUBROUTINE PARTB(N,B,S,D,Q,WK,DRV,I,J)
-      INTEGER N,I,J
-      DOUBLE PRECISION B(N,N),D(N,N),S(N,N),Q(N,N),DRV,WK(5*N)
-c     SUBROUTINE PARTB 
-c   
-c     PARTB computes one partial derivative 
-c     with respect
-c     to one entry of the coefficient matrix in a CLGGM
-c     PARTB has to be called after DGELYP since it 
-c     operates over the factorized matrices
-c     In particular PARTB returns the partial derivative 
-c     df/dB_{I,J} = JS(B) dg/dS  where f(B) = g(S(B)) 
-c     and S(B) is the solution of the Lyapunov equation
-c     BS + SB' + C = 0 
-c     ON ENTRY
-c          N    integer
-c               dimension of the problem
-c          B    double precision (N,N)
-c               quasi-upper-triangular matrix as returned by DGELYP 
-c          S    double precision (N,N)
-c               solution of the CLE as returned by DGELYP
-c          D    double precision (N,N)
-c               the differential with respect to S(B) the 
-c               covariance matrix solution of the Lyapunov eq.
-c          Q    Orthogonal matrices that reduced B in Schur form
-c          DRV  double precision output variable
-c          I,J  integer
-c               index of the entries for which the partial derivative 
-c               should be computed
-c     
-c     ON RETURN
-c          DRV  value of the partial derivative 
-c internal variables
-      INTEGER II,JJ,K,INFO
-      DOUBLE PRECISION TEMPC(N,N)
-      DRV = 0
-      DO 732  II = 1, N
-         DO 731 JJ = 1, N
-            TEMPC(II,JJ) = 0
-  731    CONTINUE         
-  732 CONTINUE
-      DO 733 K=1,N
-         TEMPC(I,K) = S(J,K)
-         TEMPC(K,I) = S(K,J)
-  733 CONTINUE
-      TEMPC(I,I) = 2 * S(J,I)
-      CALL DGELYP(N,B,TEMPC,Q,WK,1,INFO)
-      DO 735 JJ = 1,N
-         DO 734 II = 1,N
-            DRV = DRV - TEMPC(II,JJ) * D(II,JJ) 
-  734    CONTINUE
-  735 CONTINUE
-      RETURN
-c last line of LLPARTB
-      END
-      SUBROUTINE JACLLB(N,B,S,Q,WK,JAC)
-c compute the Jacobian matrix 
-      INTEGER N,INFO
-      DOUBLE PRECISION B(N,N), S(N,N), 
-     *Q(N,N), JAC(N*N, N*N), WK(5*N)
-c     internal variables
-      INTEGER I,J
-      DOUBLE PRECISION TEMPC(N,N)
-      DO 750  I = 1, N
-         DO 740 J = 1, N
-            TEMPC(I,J) = 0
-  740    CONTINUE         
-  750 CONTINUE  
-      DO 770 I = 1, N
-         DO 760 J = 1, N
-            DO 755 K = 1, N
-               TEMPC(I,K) = S(J,K)
-               TEMPC(K,I) = S(K,J)
-  755       CONTINUE 
-            TEMPC(I,I) = 2 * S(J,I)
-            CALL DGELYP(N,B,TEMPC,Q,WK,1,INFO)
-            DO 757 JJ = 1,N
-               DO 756 II = 1,N
-                  JAC(N * (J - 1) + I, N * (JJ - 1) + II) =-TEMPC(II,JJ)
-                  TEMPC(II,JJ) = 0
-  756          CONTINUE
-  757       CONTINUE          
-  760    CONTINUE
-  770 CONTINUE
-      RETURN
-c     last line of JACLLB
-      END
-      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB)
+      SUBROUTINE PRXGRDLL(N,SIGMA,B,C,LAMBDA,TAU,EPS,ALPHA,MAXITR,JOB)
       INTEGER N,MAXITR,JOB
-      DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
+      DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA,TAU
 c     PRXGRDLLB perform proximal gradient algorithm on the
 c     entries of the B matrix of a CLGGM to solve the 
 c     penalized maximum-likelihood problem:
-c          ARGMIN  -LL(B,C) + LAMBDA * ||B||_1,off 
-c          SUBJECT  B STABLE 
+c          ARGMIN  -LL(B,C) + LAMBDA * ||B||_1,off + TAU * ||C - I||_F  
+c          SUBJECT  B STABLE, C DIAGONAL 
 c     ON ENTRY
 c          N      integer
 c                 dimension of the problem 
 c          SIGMA  double precision (N,N) 
 c                 empirical covariance matrix
 c          B      double precision (N,N)
-c                 initial coefficient matrix of CLGGM
+c                 initial B matrix
 c          C      double precision (N,N)
-c                 C matrix of CLGGM
+c                 initial C matrix
 c          LAMBDA double precision
+c                 penalization coefficient
+c          TAU    double precision
 c                 penalization coefficient
 c          EPS    double precision
 c                 stopping criterion precision
@@ -892,7 +694,9 @@ c          SIGMA  double precision (N,N)
 c                 solution of the associated continuous time Lyapunov eq
 c                 BX + XB' + C = 0 
 c          B      double precision (N,N)
-c                 estimated coefficient matrix
+c                 estimated B matrix
+c          C      double precision (N,N) 
+c                 estimated C matrix
 c          EPS    relative difference of the objective function  
 c          ALPHA  value of the objective function 
 c          MAXITR number of iterations 
@@ -901,7 +705,7 @@ c     internal variables
       DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),
      *TMPB(N,N),F,FNW,DET(2),WK(7*N), S(N,N), STEP,
      *BOLD(N,N), DIFFB, LTEN, UNO, ZERO, MUNO, DELTA(N,N),
-     *U(N,N), VT(N,N)
+     *TMPBT(N,N), TMPQ(N,N), COLD(N), GRADC(N), STEPC
       LTEN = LOG(10.0)
 c     copy C,B,SIGMA and initialize IX 
       ITR = 0
@@ -917,8 +721,6 @@ c     copy C,B,SIGMA and initialize IX
             IF (JOB / 10 .EQ. 1 .AND. B(I,J) .EQ. 0) IX((J-1)*N + I)=0 
             TMPC(I,J) = -C(I,J) 
             TMPB(I,J) = B(I,J)
-            S(I,J) = B(I,J)
-            GRAD(I,J) = 0 
   10     CONTINUE          
   20  CONTINUE          
       CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
@@ -935,7 +737,7 @@ c     copy C,B,SIGMA and initialize IX
             F = F + SIGMA(I,J) * TMPC(I,J) + LAMBDA * ABS(B(I,J))  
             DELTA(I,J) = TMPC(I,J)
  50      CONTINUE        
-            F = F - LAMBDA * ABS(B(J,J))
+            F = F - LAMBDA * ABS(B(J,J)) + TAU * ((C(J,J) - 1)**2)
  60   CONTINUE
 c     main loop here, increase iteration counter
  500  CONTINUE      
@@ -948,20 +750,50 @@ c     compute P*SIGMA - I
  70   CONTINUE
 c     compute (P*SIGMA - I)*P = P*SIGMA*P - P
       CALL MULB(N, N, N, N, N, TMPC, DELTA, WK)
-      CALL GRADB(N, TMPB, DELTA, S, Q, WK, GRAD, IX)
-c     copy old B before starting line search 
+c     compute gradients for B and C
+      DO 72 J = 1, N
+         DO 71 I = 1, N
+            TMPBT(I,J) = TMPB(N - J + 1, N - I + 1) 
+            TMPQ(I,J) = Q(I,N-J + 1)  
+  71    CONTINUE         
+  72  CONTINUE
+      CALL DGELYP(N, TMPB, DELTA, TMPQ, WK, 1, INFO)
+      DO 74 J = 1, N
+        GRADC(J) = 2 * DELTA(J,J) + 2*TAU*(C(J,J) - 1)
+        DO 73 I = 1, N
+        GRAD(I,J) = 0
+        IF (IX(I + (J-1)*N) .EQ. 1) THEN
+           DO 76 K=1,N
+              GRAD(I,J) = GRAD(I,J) + 2 * S(I,K) * DELTA(K,J) 
+  76       CONTINUE
+        ENDIF
+  73    CONTINUE 
+  74  CONTINUE 
+c     copy old B and C before starting line search 
       DO 90 J = 1,N
          DO 80 I = 1,N
             BOLD(I,J) = B(I,J)
   80     CONTINUE          
+            COLD(J) = C(J,J)
   90  CONTINUE 
-c      STEP = 1
+      STEP = 1
+      STEPC = 1
 c     line search loop here
   600 CONTINUE     
+      WRITE (*,*) STEP
 c     gradient step
+c     C:
+      DO 95 K=1,N
+            C(J,J) = COLD(J) - STEPC * GRADC(J)
+            IF (C(J,J) .LE. 0) THEN
+               STEPC = STEPC * ALPHA 
+               GOTO 600
+            ENDIF
+  95  CONTINUE
+c     B:
       DO 110 J = 1,N
          DO 100 I = 1,N
-            B(I,J) = BOLD(I,J) + STEP * GRAD(I,J) 
+            B(I,J) = BOLD(I,J) - STEP * GRAD(I,J) 
   100    CONTINUE
   110 CONTINUE
 c     soft thresholding
@@ -1007,7 +839,7 @@ c     compute FNW, objective function in new B
             DIFFB = DIFFB + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
      *       (B(I,J) -BOLD(I,J)) * GRAD(I,J)  
  190     CONTINUE        
-            FNW = FNW  - LAMBDA * ABS(B(J,J))
+            FNW = FNW - LAMBDA * ABS(B(J,J)) + TAU * ((C(J,J) - 1)**2)
  200  CONTINUE
 c     Beck and Tabulle line search and descent condition
       IF ( (FNW .GT. F + DIFFB) .OR.  (FNW .GT. F )) THEN
@@ -1041,519 +873,163 @@ c     update value of objective function and repeat
       RETURN
 c     last line of PRXGRDLLB
       END
-      SUBROUTINE PRXGRDLSB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB)
-      INTEGER N,MAXITR,JOB
-      DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
-c     PRXGRDLSB perform proximal gradient algorithm on the
-c     entries of the B matrix of a CLGGM to solve the 
-c     penalized least squares problem:
-c          ARGMIN  0.5*||S(B,C) - SIGMA||_2 ** 2  + LAMBDA * ||B||_1,off 
-c          SUBJECT  B STABLE 
-c     ON ENTRY
-c          N      integer
-c                 dimension of the problem 
-c          SIGMA  double precision (N,N) 
-c                 empirical covariance matrix
-c          B      double precision (N,N)
-c                 initial coefficient matrix of CLGGM
-c          C      double precision (N,N)
-c                 C matrix of CLGGM
-c          LAMBDA double precision
-c                 penalization coefficient
-c          EPS    double precision
-c                 stopping criterion precision
-c          ALPHA  double precision
-c                 Beck and tabulle line search rate
-c          MAXITR integer
-c                 maximum number of iterations
-c          JOB    integer
-c                 Roules to select the entries of B to be updated
-c                 0  - all entries of B
-c                 1  - after each iteration only the non-zero entries 
-c                      of B are updated
-c                 10 - only non-zero entries of initial B  
-c                 11 - starting from non-zero entries of B and 
-c                      updating at each iteration the non-zero 
-c                      entries
-c 
-c     ON RETURN
-c          SIGMA  double precision (N,N)
-c                 solution of the associated continuous time Lyapunov eq
-c                 BX + XB' + C = 0 
-c          B      double precision (N,N)
-c                 estimated coefficient matrix
-c          EPS    relative difference of the objective function (last) 
-c          ALPHA  last value of the objective function  
-c          MAXITR number of iterations 
-c     internal variables
-      INTEGER I,J,K,IPVT(N),INFO, IX(N*N), ITER, IERR
-      DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),E(N,N),
-     *TMPB(N,N),F,FNW,RCOND, DELTA(N,N), STEP,
-     *BOLD(N,N), DIFFB, LTEN, UNO, WK(7*N), U(N,N), VT(N,N)
-      LTEN = LOG(10.0)
-c     copy the C matrix and initialize E as indentity 
-      ITR = 0
-      UNO = 1.0
-      RCOND = 0.0
-      IERR = 0
-      DO 20 J = 1,N
-         DO 10 I = 1,N
-            IX((J-1)*N + I) = 1
-            IF (JOB / 10 .EQ. 1 .AND. B(I,J) .EQ. 0) IX((J-1)*N + I)=0 
-            TMPC(I,J) = -C(I,J) 
-            TMPB(I,J) = B(I,J)
-  10     CONTINUE          
-  20  CONTINUE          
-      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
-      IF (INFO .LT. 0) GOTO 900
-      F = 0
-      DO 60 J = 1,N
-         DO 50 I = 1,N
-            DELTA(I,J) = SIGMA(I,J) - TMPC(I,J)
-            F = F + 0.5*(DELTA(I,J)**2) + LAMBDA * ABS(B(I,J))  
- 50      CONTINUE        
-            F = F - LAMBDA * ABS(B(J,J))
- 60   CONTINUE
-c     main loop here, increase iteration counter
- 500  CONTINUE      
-      ITR = ITR + 1
-      CALL GRADB(N, TMPB, DELTA, TMPC, Q, WK, GRAD, IX)
-c     copy old B before starting line search 
-      DO 90 J = 1,N
-         DO 80 I = 1,N
-            BOLD(I,J) = B(I,J)
-  80     CONTINUE          
-  90  CONTINUE 
-      STEP = 1
-c     line search loop here
-  600 CONTINUE     
-c     gradient step
-      DO 110 J = 1,N
-         DO 100 I = 1,N
-            B(I,J) = BOLD(I,J) + STEP * GRAD(I,J) 
-  100    CONTINUE
-  110 CONTINUE
-c     soft thresholding off diag entries
-      DO 130 J =1,N
-         DO 120 I=1,N
-            IF (I .NE. J .AND. IX((J-1)*N + I) .EQ. 1) THEN
-              B(I,J) = SIGN(UNO,B(I,J))*(ABS(B(I,J))-STEP*LAMBDA) 
-              IF (ABS(B(I,J)) .LT. STEP*LAMBDA) THEN
-                 B(I,J) = 0
-              ENDIF
-            ENDIF
- 120     CONTINUE
- 130  CONTINUE
-c     solve new Lyapunov equation
-      DO 150 J = 1,N
-         DO 140 I = 1,N
-            TMPC(I,J) = -C(I,J) 
-            TMPB(I,J) = B(I,J)
-  140    CONTINUE          
-  150 CONTINUE 
-      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
-c     chek if B is stable using the factorization in SYLGC
-      IF (INFO .LT. 0) THEN
-         STEP = STEP * ALPHA
-         GOTO 600
-      ENDIF 
-      DIFFB = 0 
-c     compute FNW, objective function in new B
-      FNW = 0 
-      DO 200 J = 1,N
-         DO 190 I = 1,N
-            DELTA(I,J) = SIGMA(I,J) - TMPC(I,J)
-            FNW = FNW + 0.5 * (DELTA(I,J)**2) + LAMBDA*ABS(B(I,J))  
-            DIFFB = DIFFB + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
-     *       (B(I,J) - BOLD(I,J)) * GRAD(I,J)  
- 190     CONTINUE        
-            FNW = FNW - LAMBDA * ABS(B(J,J))
- 200  CONTINUE
-c     Beck and Tabulle line search and descent condition
-      IF ( (FNW .GT. F + DIFFB) .OR.  (FNW .GT. F )) THEN
-         STEP = STEP * ALPHA
-         GOTO 600
-      ENDIF
-c     check stopping criteria
-      IF (((F - FNW) / ABS(F) .LE. EPS) .OR.  (ITR .GE. MAXITR)) THEN
-c     terminate and save additional outputs
-         ALPHA = FNW 
-         EPS = (F - FNW) / ABS(F)   
-         MAXITR = ITR
-         DO 220 J=1,N
-            DO 210 I=1,N
-               SIGMA(I,J) = TMPC(I,J)
- 210        CONTINUE   
- 220     CONTINUE         
-         GOTO 900 
-      ENDIF  
-      IF (MOD(JOB,10) .EQ. 1) THEN
-         DO 240 J=1,N
-            DO 230 I=1,N
-               IF (B(I,J) .EQ. 0) IX((J-1)*N+I)=0
- 230        CONTINUE
- 240     CONTINUE
-      ENDIF
-c     update value of objective function and repeat
-      F = FNW
-      GOTO 500
- 900  CONTINUE
-      RETURN
-c     last line of PRXGRDLSB
-      END
-      SUBROUTINE PRXCDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB)
-      INTEGER N,MAXITR,JOB
-      DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
-c     PRXCDLLB perform proximal coordinate descent on the
-c     entries of the B matrix of a CLGGM to solve the 
-c     penalized maximum-likelihood problem:
-c          ARGMIN  -LL(B,C) + LAMBDA * ||B||_1,off 
-c          SUBJECT  B STABLE 
-c     ON ENTRY
-c          N      integer
-c                 dimension of the problem 
-c          SIGMA  double precision (N,N) 
-c                 empirical covariance matrix
-c          B      double precision (N,N)
-c                 initial coefficient matrix of CLGGM
-c          C      double precision (N,N)
-c                 C matrix of CLGGM
-c          LAMBDA double precision
-c                 penalization coefficient
-c          EPS    double precision
-c                 stopping criterion precision
-c          ALPHA  double precision
-c                 Beck and tabulle line search rate
-c          MAXITR integer
-c                 maximum number of iterations
-c          JOB    integer
-c                 Roules to select the entries of B to be updated
-c                 0  - all entries of B
-c                 1  - after each iteration only the non-zero entries 
-c                      of B are updated
-c                 10 - only non-zero entries of initial B  
-c                 11 - starting from non-zero entries of B and 
-c                      updating at each iteration the non-zero 
-c                      entries
-c 
-c     ON RETURN
-c          SIGMA  double precision (N,N)
-c                 solution of the associated continuous time Lyapunov eq
-c                 BX + XB' + C = 0 
-c          B      double precision (N,N)
-c                 estimated coefficient matrix
-c          EPS    relative difference of the objective function  
-c          ALPHA  value of the objective function 
-c          MAXITR number of iterations 
-c     internal variables
-      INTEGER I,J,K,II,JJ,IPVT(N),INFO, IX(N*N), ITER, IERR
-      DOUBLE PRECISION DRV,TMPC(N,N),E(N,N),
-     *TMPB(N,N),F,FNW,DET(2),WK(5*N),RCOND, DELTA(N,N), S(N,N), STEP,
-     *BOLD, DIFFB, LTEN, UNO, FOLD, Q(N,N)
-      LTEN = LOG(10.0)
-c     copy the C matrix and initialize E as indentity 
-      ITR = 0
-      UNO = 1.0
-      RCOND = 0.0
-      IERR = 0
-      DO 20 J = 1,N
-         DO 10 I = 1,N
-            IX((J-1)*N + I) = 1
-            IF (JOB / 10 .EQ. 1 .AND. B(I,J) .EQ. 0) IX((J-1)*N + I)=0 
-            TMPC(I,J) = -C(I,J) 
-            TMPB(I,J) = B(I,J)
-            E(I,J) = 0
-  10     CONTINUE          
-         E(J,J) = 1
-  20  CONTINUE          
-      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
-      IF (INFO .LT. 0) GOTO 900
-      DO 40 J = 1,N
-         DO 30 I = 1,N
-            S(I,J) = TMPC(I,J)
- 30      CONTINUE        
- 40   CONTINUE
-      CALL DGEFA(TMPC, N, N, IPVT, INFO)
-      CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
-      F = LOG(DET(1)) + DET(2)*LTEN  
-      DO 60 J = 1,N
-         DO 50 I = 1,N
-            F = F + SIGMA(I,J) * TMPC(I,J) + LAMBDA * ABS(B(I,J))  
-            DELTA(I,J) = TMPC(I,J)
- 50      CONTINUE        
-            F = F - LAMBDA * ABS(B(J,J))
- 60   CONTINUE
-      FOLD = F
-c     main loop here, increase iteration counter
- 500  CONTINUE      
-      ITR = ITR + 1
-c     iterate over all the elements of B
-      DO 850 JJ = 1,N
-         DO 800 II = 1,N
-            IF (IX( (JJ-1)*N + II) .EQ. 0) GOTO 800 
-c           compute P*SIGMA, where P = S^{-1}
-            CALL MULA(N, N, N, N, N , TMPC, SIGMA, WK) 
-c           compute P*SIGMA - I
-            DO 70 K=1,N
-               TMPC(K,K) = TMPC(K,K) - 1
- 70         CONTINUE
-c           compute (P*SIGMA - I)*P = P*SIGAM*P - P
-            CALL MULB(N, N, N, N, N, TMPC, DELTA, WK) 
-c           compute negative partial derivative 
-            CALL PARTB(N,TMPB,E,DELTA,S,WK,DRV,II,JJ)
-c           copy old B(II,JJ) before starting line search 
-            BOLD = B(II,JJ)
-            STEP = 1
-c           line search loop here
-  600       CONTINUE     
-c           cordinate descent step
-            B(II,JJ) = BOLD + STEP * DRV
-c           soft thresholding
-            IF (II .NE. JJ .AND. IX((JJ-1)*N + II) .EQ. 1) THEN
-               B(II,JJ)=SIGN(UNO,B(II,JJ))*(ABS(B(II,JJ))-STEP*LAMBDA) 
-               IF (ABS(B(II,JJ)) .LT. STEP*LAMBDA) THEN
-                  B(II,JJ) = 0
-               ENDIF
-            ENDIF
-c           solve new Lyapunov equation
-            DO 150 J = 1,N
-               DO 140 I = 1,N
-                  TMPC(I,J) = -C(I,J) 
-                  TMPB(I,J) = B(I,J)
-                  E(I,J) = 0
-  140          CONTINUE          
-               E(J,J) = 1
-  150       CONTINUE 
-            CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
-c           chek if B is stable using the factorization in SYLGC
-            IF (INFO .LT. 0) THEN
-                  STEP = STEP * ALPHA
-                  GOTO 600
-            ENDIF 
-c           copy the solution of the Lyapunov equation
-            DO 180 J = 1,N
-               DO 170 I = 1,N
-                  S(I,J) = TMPC(I,J)
- 170           CONTINUE        
- 180        CONTINUE
-c           LU factorization, determinant and inverse of the solution of CLE
-            CALL DGEFA(TMPC, N, N, IPVT, INFO)
-            CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
-c           compute FNW, objective function in new B
-            FNW = LOG(DET(1)) + DET(2)*LTEN  
-            DO 200 J = 1,N
-               DO 190 I = 1,N
-                  FNW = FNW + SIGMA(I,J)*TMPC(I,J)+LAMBDA*ABS(B(I,J))  
-                  DELTA(I,J) = TMPC(I,J)
- 190           CONTINUE        
-               FNW = FNW  - LAMBDA * ABS(B(J,J))
- 200        CONTINUE
-            DIFFB = ((B(II,JJ) - BOLD)**2) / (2 * STEP) - 
-     *      (B(II,JJ) -BOLD) * DRV
-c           Beck and Tabulle line search and descent condition
-            IF ( (FNW .GT. F + DIFFB) .OR.  (FNW .GT. F )) THEN
-               STEP = STEP * ALPHA
-               GOTO 600
-            ENDIF
-         F = FNW
- 800     CONTINUE
- 850  CONTINUE   
-c     check stopping criteria
-      IF (((FOLD - FNW)/ABS(FOLD) .LE. EPS).OR.(ITR .GE. MAXITR))THEN
-c        terminate and save additional outputs
-         ALPHA = FNW 
-         EPS = (FOLD - FNW) / ABS(FOLD)   
-         MAXITR = ITR
-         DO 220 J=1,N
-            DO 210 I=1,N
-               SIGMA(I,J) = S(I,J)
- 210        CONTINUE   
- 220     CONTINUE         
-         GOTO 900 
-      ENDIF  
-      IF (MOD(JOB,10) .EQ. 1) THEN
-         DO 240 J=1,N
-            DO 230 I=1,N
-               IF (B(I,J) .EQ. 0) IX((J-1)*N+I)=0
- 230        CONTINUE
- 240     CONTINUE
-      ENDIF
-c     update value of objective function and repeat
-      FOLD = FNW
-      GOTO 500
- 900  CONTINUE
-      RETURN
-c     last line of PRXCDLLB
-      END
-      SUBROUTINE GRDDSLLC(N,SIGMA,B,C,CZ,LAMBDA,EPS,ALPHA,BETA,
-     *MAXITR,JOB)
-      INTEGER N, MAXITR, JOB
-      DOUBLE PRECISION SIGMA(N,N), B(N,N), C(N), CZ(N),
-     *LAMBDA, EPS, ALPHA, BETA 
-c     GRDDSLLC performs gradient descent to solve the following problem
-c         ARGMIN - LL(B,C) + LAMBDA * ||C - C0||_2**2  
-c           SUBJECT C DIAGONAL, POSITIVE DEFINITE
-c    ON ENTRY
-c       
-c     INTERNAL VARIABLES
-      INTEGER I,J,K,IPVT(N),INFO, ITER, IERR
-      DOUBLE PRECISION GRAD(N),TMPC(N,N),Q(N,N),
-     *TMPB(N,N),F,FNW,DET(2),WK(5*N),RCOND, DELTA(N,N), S(N,N), STEP,
-     *COLD(N), LTEN, UNO, NG
-      LTEN = LOG(10.0)
-c     copy the C matrix and initialize E as indentity 
-      ITR = 0
-      UNO = 1.0
-      RCOND = 0.0
-      IERR = 0
-      DO 20 J = 1,N
-         DO 10 I=1,N
-            TMPC(I,J) = 0
-            TMPB(I,J) = B(I,J)
- 10      CONTINUE
-            TMPC(J,J) = -C(J)
- 20   CONTINUE
-      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
-      DO 40 J = 1,N
-         DO 30 I = 1,N
-            S(I,J) = TMPC(I,J)
- 30      CONTINUE        
- 40   CONTINUE
-      CALL DGEFA(TMPC, N, N, IPVT, INFO)
-      CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
-      F = LOG(DET(1)) + DET(2)*LTEN  
-      DO 60 J = 1,N
-         DO 50 I = 1,N
-            F = F + SIGMA(I,J) * TMPC(I,J)   
-            DELTA(I,J) = TMPC(I,J)
- 50      CONTINUE        
-            F = F + LAMBDA * (C(J) - CZ(J)) ** 2
- 60   CONTINUE
-      FOLD = F
-c     main loop here, increase iteration counter
- 500  CONTINUE      
-      ITR = ITR + 1
-c     compute P*SIGMA, where P = S^{-1}
-      CALL MULA(N, N, N, N, N , TMPC, SIGMA, WK) 
-c     compute P*SIGMA - I
-      DO 70 K=1,N
-       TMPC(K,K) = TMPC(K,K) - 1
-  70   CONTINUE
-c     compute (P*SIGMA - I)*P = P*SIGAM*P - P
-      CALL MULB(N, N, N, N, N, TMPC, DELTA, WK) 
-c     compute gradient 
-      CALL GRADCD(N,TMPB,DELTA,Q,WK,GRAD)
-      NG = 0
-      DO 80 J = 1,N
-       GRAD(J) = GRAD(J) - 2 * LAMBDA * (C(J) - CZ(J)) 
-       NG = NG + GRAD(J) ** 2
-  80  CONTINUE
-c     copy old C before starting line search 
-      DO 90 J = 1,N
-         COLD(J) = C(J)         
-  90  CONTINUE 
-      STEP = 1
-c     line search loop here
-  600 CONTINUE     
-c     gradient step
-      DO 110 J = 1,N
-            C(J) = COLD(J) + STEP * GRAD(J) 
-            IF (C(J) .LE. 0) THEN
-                    STEP = STEP * ALPHA 
-                    GOTO 600
-            ENDIF
-  110 CONTINUE
-c     solve new Lyapunov equation
-      DO 150 J = 1,N
-         DO 140 I = 1,N
-            TMPC(I,J) = 0
-  140    CONTINUE          
-         TMPC(J,J) = -C(J) 
-  150 CONTINUE 
-      CALL DGELYP(N,TMPB,TMPC,Q,WK,1,INFO)
-c     copy the solution of the Lyapunov equation
-      DO 180 J = 1,N
-         DO 170 I = 1,N
-            S(I,J) = TMPC(I,J)
- 170     CONTINUE        
- 180  CONTINUE
-c     LU factorization, determinant and inverse of the solution of CLE
-      CALL DGEFA(TMPC, N, N, IPVT, INFO)
-      CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
-c     compute FNW, objective function in new C
-      FNW = LOG(DET(1)) + DET(2)*LTEN  
-      DO 200 J = 1,N
-         DO 190 I = 1,N
-            FNW = FNW + SIGMA(I,J) * TMPC(I,J)  
-            DELTA(I,J) = TMPC(I,J)
- 190     CONTINUE        
-            FNW = FNW  + LAMBDA * (C(J) - CZ(J)) ** 2
- 200  CONTINUE
-c     backtracking 
-      IF (FNW .GT. F - STEP * BETA * NG) THEN
-         STEP = STEP * ALPHA
-         GOTO 600
-      ENDIF
-c     check stopping criteria
-      IF (((F - FNW) / ABS(F) .LE. EPS) .OR.  (ITR .GE. MAXITR)) THEN
-c     terminate and save additional outputs
-         ALPHA = FNW 
-         EPS = (F - FNW) / ABS(F)   
-         MAXITR = ITR
-         DO 220 J=1,N
-            DO 210 I=1,N
-               SIGMA(I,J) = S(I,J)
- 210        CONTINUE   
- 220     CONTINUE 
-         GOTO 900 
-      ENDIF  
-c     update value of objective function and repeat
-      F = FNW
-      GOTO 500
- 900  CONTINUE
-      RETURN
-c     last line of GRDDSLLC
-      END
-c
-      SUBROUTINE PNLLBC(N, SIGMA, B, C, CZ, LAMBDA, LAMBDAC, EPS, ALPHA,
-     *BETA, MAXITR, INTITR, JOB)  
-      INTEGER N, MAXITR, INTITR, JOB
-      DOUBLE PRECISION SIGMA(N,N), B(N,N), C(N), CZ(N), LAMBDA,
-     *EPS, ALPHA, BETA, LAMBDAC
-c     internal varaibles
-      INTEGER I,J, TMPMAXITR, ITR
-      DOUBLE PRECISION TMPC(N,N), TMPS(N,N), TMPALPHA, TMPEPS, 
-     *TMPLAMBDA, TMPLAMBDAC
-      ITR = 0
- 10   CONTINUE
-      ITR = ITR + 1
-      DO 30 J=1,N
-         DO 20 I=1,N
-            TMPS(I,J) = SIGMA(I,J)
-            TMPC(I,J) = 0
- 20      CONTINUE 
-         TMPC(J,J) = C(J)
- 30   CONTINUE
-      TMPALPHA = ALPHA 
-      TMPLAMBDA = LAMBDA
-      TMPEPS = EPS
-      TMPMAXITR = INTITR
-      CALL PRXGRDLLB(N, TMPS, B, TMPC, 
-     *TMPLAMBDA,TMPEPS,TMPALPHA,TMPMAXITR,JOB)
-      TMPLAMBDAC = LAMBDAC
-      TMPALPHA = ALPHA 
-      TMPEPS = EPS
-      TMPMAXITR = INTITR
-      DO 50 J=1,N
-         DO 40 I=1,N
-            TMPS(I,J)=SIGMA(I,J)
- 40   CONTINUE
- 50   CONTINUE
-      CALL GRDDSLLC(N, TMPS, B, C, CZ, TMPLAMBDAC, TMPEPS, TMPALPHA,
-     *BETA, TMPMAXITR, JOB)  
-      IF (ITR .LT. MAXITR) GOTO 10
-      MAXITR = ITR
-      ALPHA = TMPALPHA
-      EPS = TMPEPS
-      RETURN
-      END
+c      SUBROUTINE PRXGRDLS(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB)
+c      INTEGER N,MAXITR,JOB
+c      DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
+cc     PRXGRDLSB perform proximal gradient algorithm on the
+cc     entries of the B matrix of a CLGGM to solve the 
+cc     penalized least squares problem:
+cc          ARGMIN  0.5*||S(B,C) - SIGMA||_2 ** 2  + LAMBDA * ||B||_1,off 
+cc          SUBJECT  B STABLE 
+cc     ON ENTRY
+cc          N      integer
+cc                 dimension of the problem 
+cc          SIGMA  double precision (N,N) 
+cc                 empirical covariance matrix
+cc          B      double precision (N,N)
+cc                 initial coefficient matrix of CLGGM
+cc          C      double precision (N,N)
+cc                 C matrix of CLGGM
+cc          LAMBDA double precision
+cc                 penalization coefficient
+cc          EPS    double precision
+cc                 stopping criterion precision
+cc          ALPHA  double precision
+cc                 Beck and tabulle line search rate
+cc          MAXITR integer
+cc                 maximum number of iterations
+cc          JOB    integer
+cc                 Roules to select the entries of B to be updated
+cc                 0  - all entries of B
+cc                 1  - after each iteration only the non-zero entries 
+cc                      of B are updated
+cc                 10 - only non-zero entries of initial B  
+cc                 11 - starting from non-zero entries of B and 
+cc                      updating at each iteration the non-zero 
+cc                      entries
+cc 
+cc     ON RETURN
+cc          SIGMA  double precision (N,N)
+cc                 solution of the associated continuous time Lyapunov eq
+cc                 BX + XB' + C = 0 
+cc          B      double precision (N,N)
+cc                 estimated coefficient matrix
+cc          EPS    relative difference of the objective function (last) 
+cc          ALPHA  last value of the objective function  
+cc          MAXITR number of iterations 
+cc     internal variables
+c      INTEGER I,J,K,IPVT(N),INFO, IX(N*N), ITER, IERR
+c      DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),E(N,N),
+c     *TMPB(N,N),F,FNW,RCOND, DELTA(N,N), STEP,
+c     *BOLD(N,N), DIFFB, LTEN, UNO, WK(7*N), U(N,N), VT(N,N)
+c      LTEN = LOG(10.0)
+cc     copy the C matrix and initialize E as indentity 
+c      ITR = 0
+c      UNO = 1.0
+c      RCOND = 0.0
+c      IERR = 0
+c      DO 20 J = 1,N
+c         DO 10 I = 1,N
+c            IX((J-1)*N + I) = 1
+c            IF (JOB / 10 .EQ. 1 .AND. B(I,J) .EQ. 0) IX((J-1)*N + I)=0 
+c            TMPC(I,J) = -C(I,J) 
+c            TMPB(I,J) = B(I,J)
+c  10     CONTINUE          
+c  20  CONTINUE          
+c      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
+c      IF (INFO .LT. 0) GOTO 900
+c      F = 0
+c      DO 60 J = 1,N
+c         DO 50 I = 1,N
+c            DELTA(I,J) = SIGMA(I,J) - TMPC(I,J)
+c            F = F + 0.5*(DELTA(I,J)**2) + LAMBDA * ABS(B(I,J))  
+c 50      CONTINUE        
+c            F = F - LAMBDA * ABS(B(J,J))
+c 60   CONTINUE
+cc     main loop here, increase iteration counter
+c 500  CONTINUE      
+c      ITR = ITR + 1
+c      CALL GRADB(N, TMPB, DELTA, TMPC, Q, WK, GRAD, IX)
+cc     copy old B before starting line search 
+c      DO 90 J = 1,N
+c         DO 80 I = 1,N
+c            BOLD(I,J) = B(I,J)
+c  80     CONTINUE          
+c  90  CONTINUE 
+c      STEP = 1
+cc     line search loop here
+c  600 CONTINUE     
+cc     gradient step
+c      DO 110 J = 1,N
+c         DO 100 I = 1,N
+c            B(I,J) = BOLD(I,J) - STEP * GRAD(I,J) 
+c  100    CONTINUE
+c  110 CONTINUE
+cc     soft thresholding off diag entries
+c      DO 130 J =1,N
+c         DO 120 I=1,N
+c            IF (I .NE. J .AND. IX((J-1)*N + I) .EQ. 1) THEN
+c              B(I,J) = SIGN(UNO,B(I,J))*(ABS(B(I,J))-STEP*LAMBDA) 
+c              IF (ABS(B(I,J)) .LT. STEP*LAMBDA) THEN
+c                 B(I,J) = 0
+c              ENDIF
+c            ENDIF
+c 120     CONTINUE
+c 130  CONTINUE
+cc     solve new Lyapunov equation
+c      DO 150 J = 1,N
+c         DO 140 I = 1,N
+c            TMPC(I,J) = -C(I,J) 
+c            TMPB(I,J) = B(I,J)
+c  140    CONTINUE          
+c  150 CONTINUE 
+c      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,INFO)
+cc     chek if B is stable using the factorization in SYLGC
+c      IF (INFO .LT. 0) THEN
+c         STEP = STEP * ALPHA
+c         GOTO 600
+c      ENDIF 
+c      DIFFB = 0 
+cc     compute FNW, objective function in new B
+c      FNW = 0 
+c      DO 200 J = 1,N
+c         DO 190 I = 1,N
+c            DELTA(I,J) = SIGMA(I,J) - TMPC(I,J)
+c            FNW = FNW + 0.5 * (DELTA(I,J)**2) + LAMBDA*ABS(B(I,J))  
+c            DIFFB = DIFFB + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
+c     *       (B(I,J) - BOLD(I,J)) * GRAD(I,J)  
+c 190     CONTINUE        
+c            FNW = FNW - LAMBDA * ABS(B(J,J))
+c 200  CONTINUE
+cc     Beck and Tabulle line search and descent condition
+c      IF ( (FNW .GT. F + DIFFB) .OR.  (FNW .GT. F )) THEN
+c         STEP = STEP * ALPHA
+c         GOTO 600
+c      ENDIF
+cc     check stopping criteria
+c      IF (((F - FNW) / ABS(F) .LE. EPS) .OR.  (ITR .GE. MAXITR)) THEN
+cc     terminate and save additional outputs
+c         ALPHA = FNW 
+c         EPS = (F - FNW) / ABS(F)   
+c         MAXITR = ITR
+c         DO 220 J=1,N
+c            DO 210 I=1,N
+c               SIGMA(I,J) = TMPC(I,J)
+c 210        CONTINUE   
+c 220     CONTINUE         
+c         GOTO 900 
+c      ENDIF  
+c      IF (MOD(JOB,10) .EQ. 1) THEN
+c         DO 240 J=1,N
+c            DO 230 I=1,N
+c               IF (B(I,J) .EQ. 0) IX((J-1)*N+I)=0
+c 230        CONTINUE
+c 240     CONTINUE
+c      ENDIF
+cc     update value of objective function and repeat
+c      F = FNW
+c      GOTO 500
+c 900  CONTINUE
+c      RETURN
+cc     last line of PRXGRDLSB
+c      END
