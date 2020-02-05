@@ -5,26 +5,12 @@
 \alias{lsBstabilitypath}
 \title{Path of B estimates (frobenius)}
 \usage{
-lsBpath(
-  Sigma,
-  lambdas = NULL,
-  C = diag(nrow(Sigma)),
-  B0 = NULL,
-  eps = 1e-08,
-  maxIter = 1000,
-  job = 10
-)
+lsBpath(Sigma, lambdas = NULL, C = diag(nrow(Sigma)), B0 = NULL,
+  eps = 1e-08, maxIter = 1000, job = 10)
 
-lsBstabilitypath(
-  data,
-  replicates = 100,
-  lambdas = NULL,
-  C = diag(ncol(data)),
-  B0 = NULL,
-  eps = 1e-08,
-  maxIter = 1000,
-  job = 11
-)
+lsBstabilitypath(data, replicates = 100, lambdas = NULL,
+  C = diag(ncol(data)), B0 = NULL, eps = 1e-08, maxIter = 1000,
+  job = 11)
 }
 \arguments{
 \item{Sigma}{empirical covariance matrix}
