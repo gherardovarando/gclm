@@ -4,8 +4,16 @@
 \alias{proxcdllB}
 \title{Penalized likelihood estimation of CLGGM}
 \usage{
-proxcdllB(Sigma, B, C = diag(ncol(Sigma)), eps = 0.01, alpha = 0.5,
-  maxIter = 1000, lambda = 0, job = 0)
+proxcdllB(
+  Sigma,
+  B,
+  C = diag(ncol(Sigma)),
+  eps = 0.01,
+  alpha = 0.5,
+  maxIter = 1000,
+  lambda = 0,
+  job = 0
+)
 }
 \arguments{
 \item{Sigma}{the observed covariance matrix}
