@@ -530,7 +530,7 @@ c     internal variables
       INDR = 1
       INDI = INDR + N
       INDW = INDI + N
-      IF (TYPE .EQ. 0) THEN
+      IF (TYP .EQ. 0) THEN
               TRANA = "N"
               TRANB = "T"
       ELSE
@@ -889,7 +889,7 @@ c          EPS    relative difference of the objective function (last)
 c          ALPHA  last value of the objective function  
 c          MAXITR number of iterations 
 c     internal variables
-      INTEGER I,J,K,INFO, IX(N*N), ITER
+      INTEGER I,J,K,INFO, IX(N*N), ITR
       DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),
      *TMPB(N,N),F,FNW, STEP, TMP(N,N),
      *BOLD(N,N), DIFFB, UNO, WK(7*N)
@@ -909,7 +909,7 @@ c     internal variables
       DO 60 J = 1,N
          DO 50 I = 1,N
             TMP(I,J) = SIGMA(I,J) - TMPC(I,J)
-            F = F + 0.5*(GRAD(I,J)**2) + LAMBDA * ABS(B(I,J))  
+            F = F + 0.5*(TMP(I,J)**2) + LAMBDA * ABS(B(I,J))  
  50      CONTINUE        
             F = F - LAMBDA * ABS(B(J,J))
  60   CONTINUE
