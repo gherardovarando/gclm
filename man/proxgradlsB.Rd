@@ -10,7 +10,7 @@ proxgradlsB(
   C = diag(ncol(Sigma)),
   eps = 0.01,
   alpha = 0.5,
-  maxIter = 1000,
+  maxIter = 100,
   lambda = 0,
   job = 0
 )

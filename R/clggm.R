@@ -157,7 +157,7 @@ proxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
 #' @export
 proxgradlsB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
                       alpha = 0.5, 
-                      maxIter = 1000, 
+                      maxIter = 100, 
                       lambda = 0, job = 0){
   
   out <- .Fortran("PRXGRDLSB",as.integer(ncol(Sigma)), as.double(Sigma), 
