@@ -589,7 +589,7 @@ c     denotes the solution of the Lyapunov equation
 c     BS + SB'+ C = 0
 c
 c local variables
-      INTEGER I, J, K, INFO
+      INTEGER I, J, INFO
       DOUBLE PRECISION ZERO, UNO
       ZERO = 0.0
       UNO = 1.0
@@ -680,11 +680,10 @@ c          EPS    relative difference of the objective function
 c          ALPHA  value of the objective function 
 c          MAXITR number of iterations 
 c     internal variables
-      INTEGER I,J,K,INFO, IX(N*N), ITER
+      INTEGER I,J,K,INFO, IX(N*N), ITR
       DOUBLE PRECISION GRAD(N,N),TMPB(N,N), TMP(N,N), Q(N,N),
      *F,FNW,WK(7*N), S(N,N), STEP, DS(N), BOLD(N,N),
-     *DIFFB, UNO, ZERO
-      LTEN = LOG(10.0)
+     * UNO, ZERO
 c     copy C,B,SIGMA and initialize IX 
       ITR = 0
       UNO = 1.0
@@ -889,10 +888,10 @@ c          EPS    relative difference of the objective function (last)
 c          ALPHA  last value of the objective function  
 c          MAXITR number of iterations 
 c     internal variables
-      INTEGER I,J,K,INFO, IX(N*N), ITR
+      INTEGER I,J,INFO, IX(N*N), ITR
       DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),
      *TMPB(N,N),F,FNW, STEP, TMP(N,N),
-     *BOLD(N,N), DIFFB, UNO, WK(7*N)
+     *BOLD(N,N), UNO, WK(7*N)
       ITR = 0
       UNO = 1.0
       DO 20 J = 1,N
@@ -1008,7 +1007,7 @@ c           SUBJECT C DIAGONAL, POSITIVE DEFINITE
 c    ON ENTRY
 c       
 c     INTERNAL VARIABLES
-      INTEGER I,J,K,IPVT(N),INFO, ITER, IERR
+      INTEGER I,J,K,IPVT(N),INFO,ITR,IERR
       DOUBLE PRECISION GRAD(N),TMPC(N,N),Q(N,N),
      *TMPB(N,N),F,FNW,DET(2),WK(5*N),RCOND, DELTA(N,N), S(N,N), STEP,
      *COLD(N), LTEN, UNO, NG
@@ -1040,7 +1039,6 @@ c     INTERNAL VARIABLES
  50      CONTINUE        
             F = F + LAMBDA * (C(J) - CZ(J)) ** 2
  60   CONTINUE
-      FOLD = F
 c     main loop here, increase iteration counter
  500  CONTINUE      
       ITR = ITR + 1
