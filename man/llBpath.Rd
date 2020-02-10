@@ -10,7 +10,7 @@ llBpath(
   lambdas = NULL,
   C = diag(nrow(Sigma)),
   B0 = NULL,
-  eps = 1e-08,
+  eps = 1e-06,
   maxIter = 1000,
   job = 0
 )
