@@ -677,13 +677,13 @@ c                 BX + XB' + C = 0
 c          B      double precision (N,N)
 c                 estimated coefficient matrix
 c          EPS    relative difference of the objective function  
-c          ALPHA  value of the objective function 
+c          ALPHA  minus log-likelihood 
 c          MAXITR number of iterations 
 c     internal variables
       INTEGER I,J,K,INFO, IX(N*N), ITR
       DOUBLE PRECISION GRAD(N,N),TMPB(N,N), TMP(N,N), Q(N,N),
      *F,FNW,WK(7*N), S(N,N), STEP, DS(N), BOLD(N,N),
-     * UNO, ZERO
+     * UNO, ZERO, G, GNW, DIFF
 c     copy C,B,SIGMA and initialize IX 
       ITR = 0
       UNO = 1.0
@@ -708,6 +708,7 @@ c     save diagonal of S
 c     obtain cholesky decomposition of S = SIGMA(B,C)
       CALL DPOTRF("L", N, S, N, INFO)
       F = 0
+      G = 0
       DO 46 K=1,N
          F = F + 2 * LOG(S(K,K)) 
  46   CONTINUE
@@ -716,9 +717,10 @@ c     obtain S^(-1)
 c     compute initial objective function
       DO 60 J = 1,N - 1
          DO 50 I = J + 1,N
-            F = F + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) + 
+            F = F +  
      *          2*S(I,J)*SIGMA(I,J)   
      *           
+            G = G + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) 
  50      CONTINUE        
             F = F + S(J,J) * SIGMA(J,J) 
  60   CONTINUE
@@ -785,36 +787,38 @@ c     save diagonal of S
 c     obtain cholesky decomposition of S = SIGMA(B,C)
       CALL DPOTRF("L", N, S, N, INFO)
       FNW = 0
+      GNW = 0
+      DIFF = 0
       DO 160 K=1,N
          FNW = FNW + 2 * LOG(S(K,K)) 
   160 CONTINUE
 c     obtain S^(-1)
       CALL DPOTRI("L", N, S, N, INFO)
 c     compute FNW, objective function in new B
-c      DIFFB = 0
       DO 180 J = 1,N - 1
          DO 170 I = J + 1,N
-            FNW = FNW + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) + 
+            FNW = FNW + 
      *          2*S(I,J)*SIGMA(I,J)              
-c             DIFFB = DIFFB + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
-c     *       (B(I,J) - BOLD(I,J)) * GRAD(I,J) + 
-c     *       ((B(J,I) - BOLD(J,I))**2) / (2 * STEP) - 
-c     *       (B(J,I) - BOLD(J,I)) * GRAD(J,I)  
+            GNW = GNW + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) 
+             DIFF = DIFF + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
+     *       (B(I,J) - BOLD(I,J)) * GRAD(I,J) + 
+     *       ((B(J,I) - BOLD(J,I))**2) / (2 * STEP) - 
+     *       (B(J,I) - BOLD(J,I)) * GRAD(J,I)  
  170     CONTINUE        
             FNW = FNW + S(J,J) * SIGMA(J,J) 
-c            DIFFB = DIFFB + ((B(J,J) - BOLD(J,J))**2) / (2 * STEP) - 
-c     *       (B(J,J) - BOLD(J,J)) * GRAD(J,J) 
+            DIFF = DIFF + ((B(J,J) - BOLD(J,J))**2) / (2 * STEP) - 
+     *       (B(J,J) - BOLD(J,J)) * GRAD(J,J) 
  180  CONTINUE
       FNW = FNW + S(N,N) * SIGMA(N,N)
-c           DIFFB = DIFFB + ((B(N,N) - BOLD(N,N))**2) / (2 * STEP) - 
-c     *       (B(N,N) - BOLD(N,N)) * GRAD(N,N) 
+           DIFF = DIFF + ((B(N,N) - BOLD(N,N))**2) / (2 * STEP) - 
+     *       (B(N,N) - BOLD(N,N)) * GRAD(N,N) 
 c     Beck and Tabulle line search and descent condition
-      IF (FNW .GT. F) THEN
+      IF (FNW .GT. F + DIFF .OR. (FNW + GNW) .GT. (F + G)) THEN
          STEP = STEP * ALPHA
          GOTO 600
       ENDIF
 c     check stopping criteria
-      IF (((F - FNW) / ABS(F) .LE. EPS) .OR.  (ITR .GE. MAXITR)) THEN
+      IF (((F+G-FNW-GNW) / ABS(F+G) .LE. EPS).OR.(ITR .GE. MAXITR)) THEN
 c     terminate and save additional outputs
          ALPHA = FNW 
          EPS = (F - FNW) / ABS(F)   
@@ -838,6 +842,7 @@ c     terminate and save additional outputs
       ENDIF
 c     update value of objective function and repeat
       F = FNW
+      G = GNW
       GOTO 500
  900  CONTINUE
       RETURN
@@ -891,7 +896,7 @@ c     internal variables
       INTEGER I,J,INFO, IX(N*N), ITR
       DOUBLE PRECISION GRAD(N,N),TMPC(N,N),Q(N,N),
      *TMPB(N,N),F,FNW, STEP, TMP(N,N),
-     *BOLD(N,N), UNO, WK(7*N)
+     *BOLD(N,N), UNO, WK(7*N), G, GNW, DIFF
       ITR = 0
       UNO = 1.0
       DO 20 J = 1,N
@@ -905,12 +910,15 @@ c     internal variables
       CALL DGELYP(N,TMPB,TMPC,Q,WK,0,0,INFO)
       IF (INFO .LT. 0) GOTO 900
       F = 0
+      G = 0
+c     can be improved using symm
       DO 60 J = 1,N
          DO 50 I = 1,N
             TMP(I,J) = SIGMA(I,J) - TMPC(I,J)
-            F = F + 0.5*(TMP(I,J)**2) + LAMBDA * ABS(B(I,J))  
+            F = F + 0.5*(TMP(I,J)**2)   
+            G = G + LAMBDA * ABS(B(I,J))
  50      CONTINUE        
-            F = F - LAMBDA * ABS(B(J,J))
+            G = G - LAMBDA * ABS(B(J,J))
  60   CONTINUE
 c     main loop here, increase iteration counter
  500  CONTINUE      
@@ -957,20 +965,25 @@ c     chek if B is stable
       ENDIF 
 c     compute FNW, objective function in new B
       FNW = 0 
+      GNW = 0
+      DIFF = 0
       DO 200 J = 1,N
          DO 190 I = 1,N
             TMP(I,J) = SIGMA(I,J) - TMPC(I,J)
-            FNW = FNW + 0.5 * (TMP(I,J)**2) + LAMBDA*ABS(B(I,J))  
+            FNW = FNW + 0.5 * (TMP(I,J)**2) 
+            GNW = GNW + LAMBDA * ABS(B(I,J))
+            DIFF = DIFF + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
+     *       (B(I,J) - BOLD(I,J)) * GRAD(I,J) 
  190     CONTINUE        
-            FNW = FNW - LAMBDA * ABS(B(J,J))
+            GNW = GNW - LAMBDA * ABS(B(J,J))
  200  CONTINUE
-c     line search with descent condition
-      IF (FNW .GT. F) THEN
+c     BandT and line search with descent condition
+      IF (FNW .GT. F + DIFF .OR. (FNW + GNW) .GT. (F + G)) THEN
          STEP = STEP * ALPHA
          GOTO 600
       ENDIF
 c     check stopping criteria
-      IF (((F - FNW) / ABS(F) .LE. EPS) .OR.  (ITR .GE. MAXITR)) THEN
+      IF (((F+G-FNW-GNW) / ABS(F+G).LE.EPS).OR.(ITR.GE.MAXITR)) THEN
 c     terminate and save additional outputs
          ALPHA = FNW 
          EPS = (F - FNW) / ABS(F)   
@@ -991,6 +1004,7 @@ c     terminate and save additional outputs
       ENDIF
 c     update value of objective function and repeat
       F = FNW
+      G = GNW
       GOTO 500
  900  CONTINUE
       RETURN
