@@ -2,6 +2,7 @@
 % Please edit documentation in R/path_functions.R
 \name{llBpath}
 \alias{llBpath}
+\alias{pnllpath}
 \alias{llBstabilitypath}
 \title{Path of B estimates (log-lik)}
 \usage{
@@ -12,6 +13,18 @@ llBpath(
   B0 = NULL,
   eps = 1e-06,
   maxIter = 1000,
+  job = 0
+)
+
+pnllpath(
+  Sigma,
+  lambdas = NULL,
+  C0 = diag(nrow(Sigma)),
+  B0 = NULL,
+  eps = 1e-06,
+  maxIter = 1000,
+  intitr = 10,
+  lambdac = 0,
   job = 0
 )
 

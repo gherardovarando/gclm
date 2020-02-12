@@ -1,510 +1,3 @@
-      SUBROUTINE MULA(NA,NB,N,M,L,A,B,WORK)
-C
-C     *****PARAMETERS:
-      INTEGER NA,NB,N,M,L
-      DOUBLE PRECISION A(NA,M),B(NB,L),WORK(L)
-C
-C     *****LOCAL VARIABLES:
-      INTEGER I,J,K
-C
-C     *****FORTRAN FUNCTIONS:
-C     NONE.
-C
-C     *****SUBROUTINES CALLED:
-C     NONE.
-C
-C     ------------------------------------------------------------------
-C
-C     *****PURPOSE:
-C     THIS SUBROUTINE COMPUTES THE MATRIX PRODUCT A * B AND OVERWRITES
-C     IT INTO THE ARRAY A.  WHERE A IS N BY M AND B IS M BY L AND M IS
-C     GREATER THAN OR EQUAL TO L.
-C
-C     *****PARAMETER DESCRIPTION:
-C
-C     ON INPUT:
-C
-C       NA,NB   INTEGER
-C               ROW DIMENSIONS OF THE ARRAYS CONTAINING A AND B,
-C               RESPECTIVELY, AS DECLARED IN THE MAIN CALLING PROGRAM
-C               DIMENSION STATEMENT;
-C
-C       N       INTEGER
-C               ROW DIMENSION OF THE MATRIX A;
-C
-C       M       INTEGER
-C               COLUMN DIMENSION OF THE MATRIX A AND ROW DIMENSION OF
-C               THE MATRIX B;
-C
-C       L       INTEGER
-C               COLUMN DIMENSION OF THE MATRIX B;
-C
-C       A       REAL(NA,M)
-C               AN N BY M MATRIX;
-C
-C       B       REAL(NB,L)
-C               AN M BY L MATRIX.
-C
-C     ON OUTPUT:
-C
-C       A       CONTAINS THE N BY L MATRIX PRODUCT A * B.
-C
-C     *****ALGORITHM NOTES:
-C     NONE.
-C
-C     *****HISTORY:
-C     THIS SUBROUTINE WAS WRITTEN BY W.F. ARNOLD, NAVAL WEAPONS CENTER,
-C     CODE 35104, CHINA LAKE, CA  93555, AS PART OF THE SOFTWARE PACKAGE
-C     RICPACK, SEPTEMBER 1983.
-C
-C     ------------------------------------------------------------------
-C
-      DO 40 I=1,N
-          DO 20 J=1,L
-              WORK(J) = 0.0D0
-              DO 10 K=1,M
-                  WORK(J) = WORK(J) + A(I,K)*B(K,J)
-   10         CONTINUE
-   20     CONTINUE
-          DO 30 J=1,L
-              A(I,J) = WORK(J)
-   30     CONTINUE
-   40 CONTINUE
-      RETURN
-C
-C     LAST LINE OF MULA
-C
-      END
-      SUBROUTINE MULB(NA,NB,N,M,L,A,B,WORK)
-C
-C     PARAMETERS:
-      INTEGER NA,NB,N,M,L
-      DOUBLE PRECISION A(NA,M),B(NB,L),WORK(N)
-C
-C     *****LOCAL VARIABLES:
-      INTEGER I,J,K
-C
-C     *****FORTRAN FUNCTIONS:
-C     NONE.
-C
-C     *****SUBROUTINES CALLED:
-C     NONE.
-C
-C     ------------------------------------------------------------------
-C
-C     *****PURPOSE:
-C     THIS SUBROUTINE COMPUTES THE MATRIX PRODUCT A * B AND OVERWRITES
-C     IT INTO THE ARRAY B.  WHERE A IS N BY M AND B IS M BY L AND NB IS
-C     GREATER THAN OR EQUAL TO N.
-C
-C     *****PARAMETER DESCRIPTION:
-C
-C     ON INPUT:
-C
-C       NA,NB   INTEGER
-C               ROW DIMENSIONS OF THE ARRAYS CONTAINING A AND B,
-C               RESPECTIVELY, AS DECLARED IN THE MAIN CALLING PROGRAM
-C               DIMENSION STATEMENT;
-C
-C       N       INTEGER
-C               ROW DIMENSION OF THE MATRIX A;
-C
-C       M       INTEGER
-C               COLUMN DIMENSION OF THE MATRIX A AND ROW DIMENSION OF
-C               THE MATRIX B;
-C
-C       L       INTEGER
-C               COLUMN DIMENSION OF THE MATRIX B;
-C
-C       A       REAL(NA,M)
-C               AN N BY M MATRIX;
-C
-C       B       REAL(NB,L)
-C               AN M BY L MATRIX.
-C
-C     ON OUTPUT:
-C
-C       B       CONTAINS THE N BY L MATRIX PRODUCT A * B.
-C
-C     *****ALGORITHM NOTES:
-C     NONE.
-C
-C     *****HISTORY:
-C     THIS SUBROUTINE WAS WRITTEN BY W.F. ARNOLD, NAVAL WEAPONS CENTER,
-C     CODE 35104, CHINA LAKE, CA  93555, AS PART OF THE SOFTWARE PACKAGE
-C     RICPACK, SEPTEMBER 1983.
-C
-C     ------------------------------------------------------------------
-C
-      DO 50 J=1,L
-          DO 10 I=1,N
-              WORK(I) = 0.0D0
-   10     CONTINUE
-          DO 30 K=1,M
-              DO 20 I=1,N
-                  WORK(I) = WORK(I) + A(I,K)*B(K,J)
-   20         CONTINUE
-   30     CONTINUE
-          DO 40 I=1,N
-              B(I,J) = WORK(I)
-   40     CONTINUE
-   50 CONTINUE
-      RETURN
-C
-C     LAST LINE OF MULB
-C
-      END
-c
-      subroutine dgefa(a,lda,n,ipvt,info)
-      integer lda,n,ipvt(n),info
-      double precision a(lda,n)
-c
-c     dgefa factors a double precision matrix by gaussian elimination.
-c
-c     dgefa is usually called by dgeco, but it can be called
-c     directly with a saving in time if  rcond  is not needed.
-c     (time for dgeco) = (1 + 9/n)*(time for dgefa) .
-c
-c     on entry
-c
-c        a       double precision(lda, n)
-c                the matrix to be factored.
-c
-c        lda     integer
-c                the leading dimension of the array  a .
-c
-c        n       integer
-c                the order of the matrix  a .
-c
-c     on return
-c
-c        a       an upper triangular matrix and the multipliers
-c                which were used to obtain it.
-c                the factorization can be written  a = l*u  where
-c                l  is a product of permutation and unit lower
-c                triangular matrices and  u  is upper triangular.
-c
-c        ipvt    integer(n)
-c                an integer vector of pivot indices.
-c
-c        info    integer
-c                = 0  normal value.
-c                = k  if  u(k,k) .eq. 0.0 .  this is not an error
-c                     condition for this subroutine, but it does
-c                     indicate that 
-c                     if called.  use  rcond  in dgeco for a reliable
-c                     indication of singularity.
-c
-c     linpack. this version dated 08/14/78 .
-c     cleve moler, university of new mexico, argonne national lab.
-c
-c     subroutines and functions
-c
-c     blas daxpy,dscal,idamax
-c
-c     internal variables
-c
-      double precision t
-      integer idamax,j,k,kp1,l,nm1
-c
-c
-c     gaussian elimination with partial pivoting
-c
-      info = 0
-      nm1 = n - 1
-      if (nm1 .lt. 1) go to 70
-      do 60 k = 1, nm1
-         kp1 = k + 1
-c
-c        find l = pivot index
-c
-         l = idamax(n-k+1,a(k,k),1) + k - 1
-         ipvt(k) = l
-c
-c        zero pivot implies this column already triangularized
-c
-         if (a(l,k) .eq. 0.0d0) go to 40
-c
-c           interchange if necessary
-c
-            if (l .eq. k) go to 10
-               t = a(l,k)
-               a(l,k) = a(k,k)
-               a(k,k) = t
-   10       continue
-c
-c           compute multipliers
-c
-            t = -1.0d0/a(k,k)
-            call dscal(n-k,t,a(k+1,k),1)
-c
-c           row elimination with column indexing
-c
-            do 30 j = kp1, n
-               t = a(l,j)
-               if (l .eq. k) go to 20
-                  a(l,j) = a(k,j)
-                  a(k,j) = t
-   20          continue
-               call daxpy(n-k,t,a(k+1,k),1,a(k+1,j),1)
-   30       continue
-         go to 50
-   40    continue
-            info = k
-   50    continue
-   60 continue
-   70 continue
-      ipvt(n) = n
-      if (a(n,n) .eq. 0.0d0) info = n
-      return
-      end
-      subroutine dgesl(a,lda,n,ipvt,b,job)
-      integer lda,n,ipvt(n),job
-      double precision a(lda,n),b(n)
-c
-c     dgesl solves the double precision system
-c     a * x = b  or  trans(a) * x = b
-c     using the factors computed by dgeco or dgefa.
-c
-c     on entry
-c
-c        a       double precision(lda, n)
-c                the output from dgeco or dgefa.
-c
-c        lda     integer
-c                the leading dimension of the array  a .
-c
-c        n       integer
-c                the order of the matrix  a .
-c
-c        ipvt    integer(n)
-c                the pivot vector from dgeco or dgefa.
-c
-c        b       double precision(n)
-c                the right hand side vector.
-c
-c        job     integer
-c                = 0         to solve  a*x = b ,
-c                = nonzero   to solve  trans(a)*x = b  where
-c                            trans(a)  is the transpose.
-c
-c     on return
-c
-c        b       the solution vector  x .
-c
-c     error condition
-c
-c        a division by zero will occur if the input factor contains a
-c        zero on the diagonal.  technically this indicates singularity
-c        but it is often caused by improper arguments or improper
-c        setting of lda .  it will not occur if the subroutines are
-c        called correctly and if dgeco has set rcond .gt. 0.0
-c        or dgefa has set info .eq. 0 .
-c
-c     to compute  inverse(a) * c  where  c  is a matrix
-c     with  p  columns
-c           call dgeco(a,lda,n,ipvt,rcond,z)
-c           if (rcond is too small) go to ...
-c           do 10 j = 1, p
-c              call dgesl(a,lda,n,ipvt,c(1,j),0)
-c        10 continue
-c
-c     linpack. this version dated 08/14/78 .
-c     cleve moler, university of new mexico, argonne national lab.
-c
-c     subroutines and functions
-c
-c     blas daxpy,ddot
-c
-c     internal variables
-c
-      double precision ddot,t
-      integer k,kb,l,nm1
-c
-      nm1 = n - 1
-      if (job .ne. 0) go to 50
-c
-c        job = 0 , solve  a * x = b
-c        first solve  l*y = b
-c
-         if (nm1 .lt. 1) go to 30
-         do 20 k = 1, nm1
-            l = ipvt(k)
-            t = b(l)
-            if (l .eq. k) go to 10
-               b(l) = b(k)
-               b(k) = t
-   10       continue
-            call daxpy(n-k,t,a(k+1,k),1,b(k+1),1)
-   20    continue
-   30    continue
-c
-c        now solve  u*x = y
-c
-         do 40 kb = 1, n
-            k = n + 1 - kb
-            b(k) = b(k)/a(k,k)
-            t = -b(k)
-            call daxpy(k-1,t,a(1,k),1,b(1),1)
-   40    continue
-      go to 100
-   50 continue
-c
-c        job = nonzero, solve  trans(a) * x = b
-c        first solve  trans(u)*y = b
-c
-         do 60 k = 1, n
-            t = ddot(k-1,a(1,k),1,b(1),1)
-            b(k) = (b(k) - t)/a(k,k)
-   60    continue
-c
-c        now solve trans(l)*x = y
-c
-         if (nm1 .lt. 1) go to 90
-         do 80 kb = 1, nm1
-            k = n - kb
-            b(k) = b(k) + ddot(n-k,a(k+1,k),1,b(k+1),1)
-            l = ipvt(k)
-            if (l .eq. k) go to 70
-               t = b(l)
-               b(l) = b(k)
-               b(k) = t
-   70       continue
-   80    continue
-   90    continue
-  100 continue
-      return
-      end
-      subroutine dgedi(a,lda,n,ipvt,det,work,job)
-      integer lda,n,ipvt(1),job
-      double precision a(lda,1),det(2),work(1)
-c
-c     dgedi computes the determinant and inverse of a matrix
-c     using the factors computed by dgeco or dgefa.
-c
-c     on entry
-c
-c        a       double precision(lda, n)
-c                the output from dgeco or dgefa.
-c
-c        lda     integer
-c                the leading dimension of the array  a .
-c
-c        n       integer
-c                the order of the matrix  a .
-c
-c        ipvt    integer(n)
-c                the pivot vector from dgeco or dgefa.
-c
-c        work    double precision(n)
-c                work vector.  contents destroyed.
-c
-c        job     integer
-c                = 11   both determinant and inverse.
-c                = 01   inverse only.
-c                = 10   determinant only.
-c
-c     on return
-c
-c        a       inverse of original matrix if requested.
-c                otherwise unchanged.
-c
-c        det     double precision(2)
-c                determinant of original matrix if requested.
-c                otherwise not referenced.
-c                determinant = det(1) * 10.0**det(2)
-c                with  1.0 .le. dabs(det(1)) .lt. 10.0
-c                or  det(1) .eq. 0.0 .
-c
-c     error condition
-c
-c        a division by zero will occur if the input factor contains
-c        a zero on the diagonal and the inverse is requested.
-c        it will not occur if the subroutines are called correctly
-c        and if dgeco has set rcond .gt. 0.0 or dgefa has set
-c        info .eq. 0 .
-c
-c     linpack. this version dated 08/14/78 .
-c     cleve moler, university of new mexico, argonne national lab.
-c
-c     subroutines and functions
-c
-c     blas daxpy,dscal,dswap
-c     fortran dabs,mod
-c
-c     internal variables
-
-      double precision t
-      double precision ten
-      integer i,j,k,kb,kp1,l,nm1
-
-
-c     compute determinant
-
-      if (job/10 .eq. 0) go to 1070
-         det(1) = 1.0d0
-         det(2) = 0.0d0
-         ten = 10.0d0
-         do 1050 i = 1, n
-            if (ipvt(i) .ne. i) det(1) = -det(1)
-            det(1) = a(i,i)*det(1)
-c        ...exit
-            if (det(1) .eq. 0.0d0) go to 1060
- 1010       if (dabs(det(1)) .ge. 1.0d0) go to 1020
-               det(1) = ten*det(1)
-               det(2) = det(2) - 1.0d0
-            go to 1010
- 1020       continue
- 1030       if (dabs(det(1)) .lt. ten) go to 1040
-               det(1) = det(1)/ten
-               det(2) = det(2) + 1.0d0
-            go to 1030
- 1040       continue
- 1050    continue
- 1060    continue
- 1070 continue
-c
-c     compute inverse(u)
-c
-      if (mod(job,10) .eq. 0) go to 1150
-         do 1100 k = 1, n
-            a(k,k) = 1.0d0/a(k,k)
-            t = -a(k,k)
-            call dscal(k-1,t,a(1,k),1)
-            kp1 = k + 1
-            if (n .lt. kp1) go to 1090
-            do 1080 j = kp1, n
-               t = a(k,j)
-               a(k,j) = 0.0d0
-               call daxpy(k,t,a(1,k),1,a(1,j),1)
- 1080       continue
- 1090       continue
- 1100    continue
-c
-c        form inverse(u)*inverse(l)
-c
-         nm1 = n - 1
-         if (nm1 .lt. 1) go to 1140
-         do 1130 kb = 1, nm1
-            k = n - kb
-            kp1 = k + 1
-            do 1110 i = kp1, n
-               work(i) = a(i,k)
-               a(i,k) = 0.0d0
- 1110       continue
-            do 1120 j = kp1, n
-               t = work(j)
-               call daxpy(n,t,a(1,j),1,a(1,k),1)
- 1120       continue
-            l = ipvt(k)
-            if (l .ne. k) call dswap(n,a(1,k),1,a(1,l),1)
- 1130    continue
- 1140    continue
- 1150 continue
-      return
-      end
-c
-c
       SUBROUTINE DGELYP(N,A,C,Q,WK,TYP,JOB,INFO)
       INTEGER N,INFO, JOB, TYP
       DOUBLE PRECISION A(N,N), C(N,N), Q(N,N), WK(5*N)
@@ -620,23 +113,16 @@ c     denotes the solution of the Lyapunov equation
 c     BS + SB'+ C = 0
 c
 c local variables
-      INTEGER I, J, INFO
-      DOUBLE PRECISION  TEMPB(N,N), TMPQ(N,N)
-      DO 20 J = 1, N
-         DO 10 I = 1, N
-            TEMPB(I,J) = B(N - J + 1, N - I + 1) 
-            TMPQ(I,J) = Q(I,N-J + 1)  
-  10    CONTINUE         
-  20  CONTINUE
-      CALL DGELYP(N, TEMPB, D, TMPQ, WK, 0,1, INFO)
-      DO 40 J = 1, N
-         GRAD(J) = 2 * D(J,J) 
+      INTEGER K, INFO
+      CALL DGELYP(N, B, D, Q, WK, 1,1, INFO)
+      DO 40 K = 1, N
+         GRAD(K) = 2 * D(K,K) 
   40  CONTINUE      
       RETURN
 c     last line of GRADCD
       END
-      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB)
-      INTEGER N,MAXITR,JOB
+      SUBROUTINE PRXGRDLLB(N,SIGMA,B,C,LAMBDA,EPS,ALPHA,MAXITR,JOB,RET)
+      INTEGER N,MAXITR,JOB, RET
       DOUBLE PRECISION SIGMA(N,N),B(N,N),C(N,N),LAMBDA,EPS,ALPHA
 c     PRXGRDLLB perform proximal gradient algorithm on the
 c     entries of the B matrix of a CLGGM to solve the 
@@ -669,6 +155,8 @@ c                 10 - only non-zero entries of initial B
 c                 11 - starting from non-zero entries of B and 
 c                      updating at each iteration the non-zero 
 c                      entries
+c          RET    integer
+c                 if RET .GT. 0 return the solution of CLE
 c 
 c     ON RETURN
 c          SIGMA  double precision (N,N)
@@ -688,8 +176,6 @@ c     copy C,B,SIGMA and initialize IX
       ITR = 0
       UNO = 1.0
       ZERO = 0.0
-      RCOND = 0.0
-      IERR = 0
       STEP = 1
       DO 20 J = 1,N
          DO 10 I = 1,N
@@ -823,14 +309,16 @@ c     terminate and save additional outputs
          ALPHA = FNW 
          EPS = (F - FNW) / ABS(F)   
          MAXITR = ITR
-         DO 220 J=2,N
-            DO 210 I=1,J-1
-               SIGMA(I,J) = S(I,J)
-               SIGMA(J,I) = S(I,J)
- 210        CONTINUE   
-               SIGMA(J,J) = DS(J)
- 220     CONTINUE         
-               SIGMA(1,1) = DS(1)
+         IF (RET .GT. 0) THEN
+            DO 220 J=2,N
+                 DO 210 I=1,J-1
+                    SIGMA(I,J) = S(I,J)
+                    SIGMA(J,I) = S(I,J)
+ 210             CONTINUE   
+                 SIGMA(J,J) = DS(J)
+ 220        CONTINUE         
+            SIGMA(1,1) = DS(1)
+         ENDIF
          GOTO 900 
       ENDIF  
       IF (MOD(JOB,10) .EQ. 1) THEN
@@ -923,7 +411,7 @@ c     can be improved using symm
 c     main loop here, increase iteration counter
  500  CONTINUE      
       ITR = ITR + 1
-      CALL GRADB(N, TMPB, TMP, TMPC, Q, WK, IX, GRAD)
+      CALL GRADB(N,TMPB,TMP,TMPC,Q,WK,IX,GRAD)
 c     copy old B before starting line search 
       DO 90 J = 1,N
          DO 80 I = 1,N
@@ -1011,8 +499,8 @@ c     update value of objective function and repeat
 c     last line of PRXGRDLSB
       END
       SUBROUTINE GRDDSLLC(N,SIGMA,B,C,CZ,LAMBDA,EPS,ALPHA,BETA,
-     *MAXITR,JOB)
-      INTEGER N, MAXITR, JOB
+     *MAXITR,JOB, RET)
+      INTEGER N, MAXITR, JOB, RET
       DOUBLE PRECISION SIGMA(N,N), B(N,N), C(N), CZ(N),
      *LAMBDA, EPS, ALPHA, BETA 
 c     GRDDSLLC performs gradient descent to solve the following problem
@@ -1021,49 +509,54 @@ c           SUBJECT C DIAGONAL, POSITIVE DEFINITE
 c    ON ENTRY
 c       
 c     INTERNAL VARIABLES
-      INTEGER I,J,K,IPVT(N),INFO,ITR,IERR
-      DOUBLE PRECISION GRAD(N),TMPC(N,N),Q(N,N),
-     *TMPB(N,N),F,FNW,DET(2),WK(5*N),RCOND, DELTA(N,N), S(N,N), STEP,
-     *COLD(N), LTEN, UNO, NG
-      LTEN = LOG(10.0)
+      INTEGER I,J,K,INFO,ITR
+      DOUBLE PRECISION GRAD(N),TMP(N,N),Q(N,N),
+     *TMPB(N,N),F,FNW,DET(2),WK(5*N), DELTA(N,N), S(N,N), STEP,
+     *COLD(N), UNO, NG, DS(N), G, GNW, ZERO
       ITR = 0
       UNO = 1.0
-      RCOND = 0.0
-      IERR = 0
+      ZERO = 0.0
       DO 20 J = 1,N
          DO 10 I=1,N
-            TMPC(I,J) = 0
+            S(I,J) = 0
             TMPB(I,J) = B(I,J)
  10      CONTINUE
-            TMPC(J,J) = -C(J)
+            S(J,J) = -C(J)
  20   CONTINUE
-      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,0,INFO)
-      DO 40 J = 1,N
-         DO 30 I = 1,N
-            S(I,J) = TMPC(I,J)
- 30      CONTINUE        
+      CALL DGELYP(N,TMPB,S,Q,WK,0,0,INFO)
+      DO 30 K=1,N
+         DS(K) = S(K,K) 
+ 30   CONTINUE
+c     obtain cholesky decomposition of S = SIGMA(B,C)
+      CALL DPOTRF("L", N, S, N, INFO)
+      F = 0
+      G = 0
+      DO 40 K=1,N
+         F = F + 2 * LOG(S(K,K)) 
  40   CONTINUE
-      CALL DGEFA(TMPC, N, N, IPVT, INFO)
-      CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
-      F = LOG(DET(1)) + DET(2)*LTEN  
-      DO 60 J = 1,N
-         DO 50 I = 1,N
-            F = F + SIGMA(I,J) * TMPC(I,J)   
-            DELTA(I,J) = TMPC(I,J)
+c     obtain S^(-1)
+      CALL DPOTRI("L", N, S, N, INFO)
+c     compute initial objective function
+      DO 60 J = 1,N - 1
+         DO 50 I = J+1,N
+            F = F + 2 * SIGMA(I,J) * S(I,J)   
  50      CONTINUE        
-            F = F + LAMBDA * (C(J) - CZ(J)) ** 2
+            F = F +  SIGMA(J,J) * S(J,J)   
+            G = G + LAMBDA * (C(J) - CZ(J)) ** 2
  60   CONTINUE
+      F = F + SIGMA(N,N) * S(N,N)   
+      G = G + LAMBDA * (C(N) - CZ(N)) ** 2
 c     main loop here, increase iteration counter
  500  CONTINUE      
       ITR = ITR + 1
 c     compute P*SIGMA, where P = S^{-1}
-      CALL MULA(N, N, N, N, N , TMPC, SIGMA, WK) 
+      CALL DSYMM("L", "L", N, N, UNO, S, N, SIGMA, N, ZERO, TMP, N)
 c     compute P*SIGMA - I
       DO 70 K=1,N
-       TMPC(K,K) = TMPC(K,K) - 1
-  70   CONTINUE
-c     compute (P*SIGMA - I)*P = P*SIGAM*P - P
-      CALL MULB(N, N, N, N, N, TMPC, DELTA, WK) 
+         TMP(K,K) = TMP(K,K) - 1
+  70  CONTINUE
+c     compute (P*SIGMA - I)*P = P*SIGMA*P - P
+      CALL DSYMM("R", "L", N, N, UNO, S, N, TMP, N, ZERO, DELTA, N)
 c     compute gradient 
       CALL GRADCD(N,TMPB,DELTA,Q,WK,GRAD)
       NG = 0
@@ -1089,45 +582,54 @@ c     gradient step
 c     solve new Lyapunov equation
       DO 150 J = 1,N
          DO 140 I = 1,N
-            TMPC(I,J) = 0
+            S(I,J) = 0
   140    CONTINUE          
-         TMPC(J,J) = -C(J) 
+         S(J,J) = -C(J) 
   150 CONTINUE 
-      CALL DGELYP(N,TMPB,TMPC,Q,WK,0,1,INFO)
-c     copy the solution of the Lyapunov equation
-      DO 180 J = 1,N
-         DO 170 I = 1,N
-            S(I,J) = TMPC(I,J)
- 170     CONTINUE        
- 180  CONTINUE
-c     LU factorization, determinant and inverse of the solution of CLE
-      CALL DGEFA(TMPC, N, N, IPVT, INFO)
-      CALL DGEDI(TMPC, N, N, IPVT, DET,WK,11) 
-c     compute FNW, objective function in new C
-      FNW = LOG(DET(1)) + DET(2)*LTEN  
-      DO 200 J = 1,N
-         DO 190 I = 1,N
-            FNW = FNW + SIGMA(I,J) * TMPC(I,J)  
-            DELTA(I,J) = TMPC(I,J)
+      CALL DGELYP(N,TMPB,S,Q,WK,0,1,INFO)
+      DO 155 K=1,N
+         DS(K) = S(K,K) 
+  155 CONTINUE
+c     obtain cholesky decomposition of S = SIGMA(B,C)
+      CALL DPOTRF("L", N, S, N, INFO)
+      FNW = 0
+      GNW = 0
+      DO 160 K=1,N
+         FNW = FNW + 2 * LOG(S(K,K)) 
+ 160   CONTINUE
+c     obtain S^(-1)
+      CALL DPOTRI("L", N, S, N, INFO)
+      DO 200 J = 1,N - 1
+         DO 190 I = J+1,N
+            FNW = FNW + 2*SIGMA(I,J) * S(I,J) 
  190     CONTINUE        
-            FNW = FNW  + LAMBDA * (C(J) - CZ(J)) ** 2
+            FNW = FNW + SIGMA(J,J) * S(J,J)
+            GNW = GNW  + LAMBDA * (C(J) - CZ(J)) ** 2
  200  CONTINUE
+      FNW = FNW + SIGMA(N,N) * S(N,N)
+      GNW = GNW  + LAMBDA * (C(N) - CZ(N)) ** 2
 c     backtracking 
-      IF (FNW .GT. F - STEP * BETA * NG) THEN
+      IF (FNW + GNW .GT. F + G - STEP * BETA * NG) THEN
          STEP = STEP * ALPHA
+         WRITE (*,*) STEP 
          GOTO 600
       ENDIF
 c     check stopping criteria
-      IF (((F - FNW) / ABS(F) .LE. EPS) .OR.  (ITR .GE. MAXITR)) THEN
+      IF (((F+G-FNW-GNW)/ABS(F+G).LE.EPS).OR.(ITR .GE. MAXITR))THEN
 c     terminate and save additional outputs
          ALPHA = FNW 
-         EPS = (F - FNW) / ABS(F)   
+         EPS = (F+G - FNW-GNW) / ABS(F+G)   
          MAXITR = ITR
-         DO 220 J=1,N
-            DO 210 I=1,N
-               SIGMA(I,J) = S(I,J)
- 210        CONTINUE   
- 220     CONTINUE 
+         IF (RET .GT. 0) THEN
+            DO 220 J=1,N - 1
+               DO 210 I=J+1,N
+                  SIGMA(I,J) = S(J,I)
+                  SIGMA(J,I) = S(J,I)
+ 210           CONTINUE   
+                  SIGMA(J,J) = DS(J)
+ 220        CONTINUE 
+                  SIGMA(N,N) = DS(N)
+         ENDIF
          GOTO 900 
       ENDIF  
 c     update value of objective function and repeat
@@ -1144,15 +646,14 @@ c
       DOUBLE PRECISION SIGMA(N,N), B(N,N), C(N), CZ(N), LAMBDA,
      *EPS, ALPHA, BETA, LAMBDAC
 c     internal varaibles
-      INTEGER I,J, TMPMAXITR, ITR
-      DOUBLE PRECISION TMPC(N,N), TMPS(N,N), TMPALPHA, TMPEPS, 
+      INTEGER I,J, ITR, ITRB, ITRC
+      DOUBLE PRECISION TMPC(N,N),  TMPALPHA, TMPEPS, 
      *TMPLAMBDA, TMPLAMBDAC
       ITR = 0
  10   CONTINUE
       ITR = ITR + 1
       DO 30 J=1,N
          DO 20 I=1,N
-            TMPS(I,J) = SIGMA(I,J)
             TMPC(I,J) = 0
  20      CONTINUE 
          TMPC(J,J) = C(J)
@@ -1160,28 +661,17 @@ c     internal varaibles
       TMPALPHA = ALPHA 
       TMPLAMBDA = LAMBDA
       TMPEPS = EPS
-      TMPMAXITR = INTITR
-      CALL PRXGRDLLB(N, TMPS, B, TMPC, 
-     *TMPLAMBDA,TMPEPS,TMPALPHA,TMPMAXITR,JOB)
+      ITRB = INTITR
+      CALL PRXGRDLLB(N, SIGMA, B, TMPC, 
+     *TMPLAMBDA,TMPEPS,TMPALPHA,ITRB,JOB, -1)
       TMPLAMBDAC = LAMBDAC
       TMPALPHA = ALPHA 
       TMPEPS = EPS
-      TMPMAXITR = INTITR
-      DO 50 J=1,N
-         DO 40 I=1,N
-            TMPS(I,J)=SIGMA(I,J)
- 40   CONTINUE
- 50   CONTINUE
-      CALL GRDDSLLC(N, TMPS, B, C, CZ, TMPLAMBDAC, TMPEPS, TMPALPHA,
-     *BETA, TMPMAXITR, JOB)  
-      IF (ITR .LT. MAXITR) GOTO 10
+      ITRC = INTITR
+      CALL GRDDSLLC(N, SIGMA, B, C, CZ, TMPLAMBDAC, TMPEPS, TMPALPHA,
+     *BETA, ITRC, JOB, -1)  
+      IF (ITR .LT. MAXITR .AND. ITRB .GT. 1 .AND. ITRC .GT. 1) GOTO 10
       MAXITR = ITR
-      ALPHA = TMPALPHA
-       DO 70 J=1,N
-         DO 60 I=1,N
-            SIGMA(I,J)=TMPS(I,J)
- 60   CONTINUE
- 70   CONTINUE
-      EPS = TMPEPS
+      INTITR = ITRB + ITRC
       RETURN
       END
