@@ -596,7 +596,7 @@ c     obtain cholesky decomposition of S = SIGMA(B,C)
       GNW = 0
       DO 160 K=1,N
          FNW = FNW + 2 * LOG(S(K,K)) 
- 160   CONTINUE
+ 160  CONTINUE
 c     obtain S^(-1)
       CALL DPOTRI("L", N, S, N, INFO)
       DO 200 J = 1,N - 1
@@ -611,7 +611,6 @@ c     obtain S^(-1)
 c     backtracking 
       IF (FNW + GNW .GT. F + G - STEP * BETA * NG) THEN
          STEP = STEP * ALPHA
-         WRITE (*,*) STEP 
          GOTO 600
       ENDIF
 c     check stopping criteria
@@ -634,6 +633,7 @@ c     terminate and save additional outputs
       ENDIF  
 c     update value of objective function and repeat
       F = FNW
+      G = GNW
       GOTO 500
  900  CONTINUE
       RETURN
