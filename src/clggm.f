@@ -955,7 +955,7 @@ c     copy old B before starting line search
             BOLD(I,J) = B(I,J)
   80     CONTINUE          
   90  CONTINUE 
-c      STEP = 1
+      STEP = 1
 c     line search loop here
   600 CONTINUE     
 c     gradient step
