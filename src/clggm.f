@@ -299,7 +299,7 @@ c     compute FNW, objective function in new B
            DIFF = DIFF + ((B(N,N) - BOLD(N,N))**2) / (2 * STEP) - 
      *       (B(N,N) - BOLD(N,N)) * GRAD(N,N) 
 c     Beck and Tabulle line search and descent condition
-      IF (FNW .GT. F + DIFF .OR. (FNW + GNW) .GT. (F + G)) THEN
+      IF (FNW + GNW .GT. F+G+DIFF .OR. (FNW+GNW) .GT. (F+G)) THEN
          STEP = STEP * ALPHA
          GOTO 600
       ENDIF
@@ -466,7 +466,7 @@ c     compute FNW, objective function in new B
             GNW = GNW - LAMBDA * ABS(B(J,J))
  200  CONTINUE
 c     BandT and line search with descent condition
-      IF (FNW .GT. F + DIFF .OR. (FNW + GNW) .GT. (F + G)) THEN
+      IF (FNW+GNW.GT.F+G+ DIFF .OR. (FNW + GNW) .GT. (F + G)) THEN
          STEP = STEP * ALPHA
          GOTO 600
       ENDIF
