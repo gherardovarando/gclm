@@ -23,7 +23,6 @@ pnllpath(
   B0 = NULL,
   eps = 1e-06,
   maxIter = 1000,
-  intitr = 10,
   lambdac = 0,
   job = 0
 )

@@ -38,7 +38,6 @@ pnllpath <- function(Sigma, lambdas = NULL,
                     C0 = diag(nrow(Sigma)),
                     B0 = NULL, 
                     eps = 1e-6, maxIter = 1000,
-                    intitr = 10,
                     lambdac = 0,
                     job = 0){
   if (is.null(lambdas)) {
@@ -50,13 +49,12 @@ pnllpath <- function(Sigma, lambdas = NULL,
   }
   for (i in 1:length(lambdas)){
     results[[i]] <- pnllbc(Sigma,B = B0, C = C0, C0 = diag(p),
-                                eps = eps, intitr = intitr, 
+                                eps = eps, 
                                 maxIter = maxIter, lambda = lambdas[i],
                                 lambdac = lambdac,
                                 job = job)
     B0 <- results[[i]]$B
     C0 <- results[[i]]$C
-    
   }
   return(results)
 }

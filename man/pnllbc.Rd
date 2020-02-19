@@ -13,7 +13,6 @@ pnllbc(
   alpha = 0.5,
   beta = 0.2,
   maxIter = 100,
-  intitr = 100,
   lambda = 0,
   lambdac = 0,
   job = 0
@@ -36,13 +35,13 @@ pnllbc(
 
 \item{maxIter}{maximum number of iterations}
 
-\item{intitr}{number of internal iterations}
-
 \item{lambda}{penalization coefficient for B}
 
 \item{lambdac}{penalization coefficient for C}
 
 \item{job}{integer 0,1,10 or 11}
+
+\item{intitr}{number of internal iterations}
 }
 \value{
 a list with the result of the optimization

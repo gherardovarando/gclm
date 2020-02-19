@@ -286,20 +286,20 @@ c     compute FNW, objective function in new B
             FNW = FNW + 
      *          2*S(I,J)*SIGMA(I,J)              
             GNW = GNW + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) 
-             DIFF = DIFF + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
+             DIFF = DIFF + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) + 
      *       (B(I,J) - BOLD(I,J)) * GRAD(I,J) + 
-     *       ((B(J,I) - BOLD(J,I))**2) / (2 * STEP) - 
+     *       ((B(J,I) - BOLD(J,I))**2) / (2 * STEP) + 
      *       (B(J,I) - BOLD(J,I)) * GRAD(J,I)  
  170     CONTINUE        
             FNW = FNW + S(J,J) * SIGMA(J,J) 
-            DIFF = DIFF + ((B(J,J) - BOLD(J,J))**2) / (2 * STEP) - 
+            DIFF = DIFF + ((B(J,J) - BOLD(J,J))**2) / (2 * STEP) + 
      *       (B(J,J) - BOLD(J,J)) * GRAD(J,J) 
  180  CONTINUE
       FNW = FNW + S(N,N) * SIGMA(N,N)
-           DIFF = DIFF + ((B(N,N) - BOLD(N,N))**2) / (2 * STEP) - 
+           DIFF = DIFF + ((B(N,N) - BOLD(N,N))**2) / (2 * STEP) + 
      *       (B(N,N) - BOLD(N,N)) * GRAD(N,N) 
 c     Beck and Tabulle line search and descent condition
-      IF (FNW + GNW .GT. F+G+DIFF .OR. (FNW+GNW) .GT. (F+G)) THEN
+      IF (FNW  .GT. F+DIFF .OR. (FNW+GNW) .GT. (F+G)) THEN
          STEP = STEP * ALPHA
          GOTO 600
       ENDIF
@@ -460,13 +460,13 @@ c     compute FNW, objective function in new B
             TMP(I,J) = SIGMA(I,J) - TMPC(I,J)
             FNW = FNW + 0.5 * (TMP(I,J)**2) 
             GNW = GNW + LAMBDA * ABS(B(I,J))
-            DIFF = DIFF + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) - 
+            DIFF = DIFF + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) + 
      *       (B(I,J) - BOLD(I,J)) * GRAD(I,J) 
  190     CONTINUE        
             GNW = GNW - LAMBDA * ABS(B(J,J))
  200  CONTINUE
 c     BandT and line search with descent condition
-      IF (FNW+GNW.GT.F+G+ DIFF .OR. (FNW + GNW) .GT. (F + G)) THEN
+      IF (FNW .GT. F+ DIFF .OR. (FNW + GNW) .GT. (F + G)) THEN
          STEP = STEP * ALPHA
          GOTO 600
       ENDIF
@@ -640,38 +640,193 @@ c     update value of objective function and repeat
 c     last line of GRDDSLLC
       END
 c
-      SUBROUTINE PNLLBC(N, SIGMA, B, C, CZ, LAMBDA, LAMBDAC, EPS, ALPHA,
-     *BETA, MAXITR, INTITR, JOB)  
-      INTEGER N, MAXITR, INTITR, JOB
+      SUBROUTINE PNLLBC(N, SIGMA, B, C, CZ, LAMBDA, LAMBDAC, EPS, 
+     *                  ALPHA, BETA, MAXITR, JOB)  
+      INTEGER N, MAXITR, JOB
       DOUBLE PRECISION SIGMA(N,N), B(N,N), C(N), CZ(N), LAMBDA,
      *EPS, ALPHA, BETA, LAMBDAC
-c     internal varaibles
-      INTEGER I,J, ITR, ITRB, ITRC
-      DOUBLE PRECISION TMPC(N,N),  TMPALPHA, TMPEPS, 
-     *TMPLAMBDA, TMPLAMBDAC
+c     internal variables
+      INTEGER I,J,K,INFO, IX(N*N), ITR
+      DOUBLE PRECISION GRAD(N,N),TMPB(N,N), TMP(N,N), Q(N,N),
+     *F,FNW,WK(7*N), S(N,N), STEP, DS(N), BOLD(N,N),
+     * UNO, ZERO, G, GNW, DIFF, COLD(N), GRADC(N)
+c     copy C,B,SIGMA and initialize IX 
       ITR = 0
- 10   CONTINUE
+      UNO = 1.0
+      ZERO = 0.0
+      STEP = 1
+      DO 20 J = 1,N
+         DO 10 I = 1,N
+            IX((J-1)*N + I) = 1
+            IF (JOB / 10 .EQ. 1 .AND. B(I,J) .EQ. 0) IX((J-1)*N + I)=0 
+            S(I,J) = 0 
+            TMPB(I,J) = B(I,J)
+  10     CONTINUE          
+            S(J,J) = - C(J)
+  20  CONTINUE          
+c     obtain S, solution of CLE
+      CALL DGELYP(N,TMPB,S,Q,WK,0,0,INFO)
+c     save diagonal of S
+      DO 45 K=1,N
+         DS(K) = S(K,K) 
+ 45   CONTINUE
+c     obtain cholesky decomposition of S = SIGMA(B,C)
+      CALL DPOTRF("L", N, S, N, INFO)
+      F = 0
+      G = 0
+      DO 46 K=1,N
+         F = F + 2 * LOG(S(K,K)) 
+     *       + LAMBDAC * (C(K) - CZ(K))**2 
+ 46   CONTINUE
+c     obtain S^(-1)
+      CALL DPOTRI("L", N, S, N, INFO)
+c     compute initial objective function
+      DO 60 J = 1,N - 1
+         DO 50 I = J + 1,N
+            F = F +  
+     *          2*S(I,J)*SIGMA(I,J)   
+     *           
+            G = G + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) 
+ 50      CONTINUE        
+            F = F + S(J,J) * SIGMA(J,J) 
+ 60   CONTINUE
+      F = F + S(N,N) * SIGMA(N,N)
+c     main loop here, increase iteration counter
+ 500  CONTINUE      
       ITR = ITR + 1
-      DO 30 J=1,N
-         DO 20 I=1,N
-            TMPC(I,J) = 0
- 20      CONTINUE 
-         TMPC(J,J) = C(J)
- 30   CONTINUE
-      TMPALPHA = ALPHA 
-      TMPLAMBDA = LAMBDA
-      TMPEPS = EPS
-      ITRB = INTITR
-      CALL PRXGRDLLB(N, SIGMA, B, TMPC, 
-     *TMPLAMBDA,TMPEPS,TMPALPHA,ITRB,JOB, -1)
-      TMPLAMBDAC = LAMBDAC
-      TMPALPHA = ALPHA 
-      TMPEPS = EPS
-      ITRC = INTITR
-      CALL GRDDSLLC(N, SIGMA, B, C, CZ, TMPLAMBDAC, TMPEPS, TMPALPHA,
-     *BETA, ITRC, JOB, -1)  
-      IF (ITR .LT. MAXITR .AND. ITRB .GT. 1 .AND. ITRC .GT. 1) GOTO 10
-      MAXITR = ITR
-      INTITR = ITRB + ITRC
+c     compute P*SIGMA, where P = S^(-1)
+      CALL DSYMM("L", "L", N, N, UNO, S, N, SIGMA, N, ZERO, GRAD, N)
+c     compute P*SIGMA - I
+      DO 70 K=1,N
+         GRAD(K,K) = GRAD(K,K) - 1
+ 70   CONTINUE
+c     compute (P*SIGMA - I)*P = P*SIGMA*P - P
+      CALL DSYMM("R", "L", N, N, UNO, S, N, GRAD, N, ZERO, TMP, N)
+c     compute gradient 
+      DO 75 K=1,N
+         S(K,K) = DS(K)
+ 75   CONTINUE
+      CALL GRADB(N,TMPB,TMP,S,Q,WK,IX,GRAD)
+c     copy old B before starting line search 
+      DO 90 J = 1,N
+         DO 80 I = 1,N
+            BOLD(I,J) = B(I,J)
+  80     CONTINUE          
+            COLD(J) = C(J) 
+            GRADC(J) = 2*TMP(J,J)+ 2 * LAMBDAC * (C(J) - CZ(J)) 
+  90  CONTINUE 
+      STEP = 1
+      STEPB = 1
+      STEPC = 1
+c     line search loop here
+  600 CONTINUE     
+c     gradient step
+      DO 110 J = 1,N
+         DO 100 I = 1,N
+            B(I,J) = BOLD(I,J) - STEP * STEPB * GRAD(I,J) 
+  100    CONTINUE
+            C(J) = COLD(J) - STEP * STEPC * GRADC(J) 
+            IF (C(J) .LT. 0) THEN
+                    STEPC = STEPC * ALPHA
+                    GOTO 600
+            ENDIF
+  110 CONTINUE
+c     soft thresholding
+      DO 130 J =1,N
+         DO 120 I=1,N
+            IF (I .NE. J .AND. IX((J-1)*N + I) .EQ. 1) THEN
+              B(I,J) = SIGN(UNO,B(I,J))*(ABS(B(I,J))-STEP*LAMBDA) 
+              IF (ABS(B(I,J)) .LT. STEP*LAMBDA) THEN
+                 B(I,J) = 0
+              ENDIF
+            ENDIF
+ 120     CONTINUE
+ 130  CONTINUE
+c     solve new Lyapunov equation
+      DO 150 J = 1,N
+         DO 140 I = 1,N
+            S(I,J) = 0 
+            TMPB(I,J) = B(I,J)
+  140    CONTINUE          
+            S(J,J) = - C(J)
+  150 CONTINUE 
+      CALL DGELYP(N,TMPB,S,Q,WK,0,0,INFO)
+c     chek if B is stable
+      IF (INFO .LT. 0) THEN
+         STEPB = STEPB * ALPHA
+         GOTO 600
+      ENDIF 
+c     save diagonal of S
+      DO 155 K=1,N
+         DS(K) = S(K,K) 
+  155 CONTINUE
+c     obtain cholesky decomposition of S = SIGMA(B,C)
+      CALL DPOTRF("L", N, S, N, INFO)
+      FNW = 0
+      GNW = 0
+      DIFF = 0
+      DO 160 K=1,N
+         FNW = FNW + 2 * LOG(S(K,K)) 
+     *         +LAMBDAC*(C(K) - CZ(K))**2
+  160 CONTINUE
+c     obtain S^(-1)
+      CALL DPOTRI("L", N, S, N, INFO)
+c     compute FNW, objective function in new B
+      DO 180 J = 1,N - 1
+         DO 170 I = J + 1,N
+            FNW = FNW + 
+     *          2*S(I,J)*SIGMA(I,J)              
+            GNW = GNW + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) 
+             DIFF = DIFF + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) +  
+     *       (B(I,J) - BOLD(I,J)) * GRAD(I,J) + 
+     *       ((B(J,I) - BOLD(J,I))**2) / (2 * STEP) + 
+     *       (B(J,I) - BOLD(J,I)) * GRAD(J,I)  
+ 170     CONTINUE        
+            FNW = FNW + S(J,J) * SIGMA(J,J)
+            DIFF = DIFF + ((B(J,J) - BOLD(J,J))**2) /(2*STEP*STEPB) +  
+     *       (B(J,J) - BOLD(J,J)) * GRAD(J,J) +  
+     *       ((C(J) - COLD(J))**2)/(1*STEP*STEPC)
+     *        + (C(J) - COLD(J)) * GRADC(J)  
+ 180  CONTINUE
+      FNW = FNW + S(N,N) * SIGMA(N,N)
+           DIFF = DIFF + ((B(N,N) - BOLD(N,N))**2) / (2*STEP*STEPB)+ 
+     *       (B(N,N) - BOLD(N,N)) * GRAD(N,N) +  
+     *       ((C(N) - COLD(N))**2)/(2*STEP*STEPC) 
+     *       + (C(N) - COLD(N)) * GRADC(N)  
+c     descent condition
+      IF ((FNW ) .GT. F  + DIFF .OR. (FNW + GNW) .GT. (F+G)) THEN
+         STEP = STEP * ALPHA
+         GOTO 600
+      ENDIF
+c     check stopping criteria
+      IF (((F+G-FNW-GNW) / ABS(F+G) .LE. EPS).OR.(ITR .GE. MAXITR)) THEN
+c     terminate and save additional outputs
+         ALPHA = FNW 
+         EPS = (F - FNW) / ABS(F)   
+         MAXITR = ITR
+         IF (RET .GT. 0) THEN
+            DO 220 J=2,N
+                 DO 210 I=1,J-1
+                    SIGMA(I,J) = S(I,J)
+                    SIGMA(J,I) = S(I,J)
+ 210             CONTINUE   
+                 SIGMA(J,J) = DS(J)
+ 220        CONTINUE         
+            SIGMA(1,1) = DS(1)
+         ENDIF
+         GOTO 900 
+      ENDIF  
+      IF (MOD(JOB,10) .EQ. 1) THEN
+         DO 240 J=1,N
+            DO 230 I=1,N
+               IF (B(I,J) .EQ. 0) IX((J-1)*N+I)=0
+ 230        CONTINUE
+ 240     CONTINUE
+      ENDIF
+c     update value of objective function and repeat
+      F = FNW
+      G = GNW
+      GOTO 500
+ 900  CONTINUE
       RETURN
       END

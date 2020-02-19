@@ -253,7 +253,6 @@ pnllbc <- function(Sigma, B, C = diag(ncol(Sigma)),
                       alpha = 0.5, 
                       beta = 0.2,
                       maxIter = 100,
-                      intitr = 100,
                       lambda = 0,
                       lambdac = 0,  job = 0){
   out <- .Fortran("PNLLBC",as.integer(ncol(Sigma)), as.double(Sigma), 
@@ -262,12 +261,12 @@ pnllbc <- function(Sigma, B, C = diag(ncol(Sigma)),
                   as.double(lambda), as.double(lambdac), 
                   as.double(eps),
                   as.double(alpha), as.double(beta),
-                  as.integer(maxIter),as.integer(intitr), 
+                  as.integer(maxIter),
                   as.integer(job), 
                   PACKAGE = "clggm")
   names(out) <- c("N", "Sigma", "B", "C", "C0", "lambda", "lambdac",
                   "diff", "objective", 
-                  "beta", "iter", "intiter", "job")
+                  "beta", "iter", "job")
   out$Sigma <- matrix(nrow = out$N, out$Sigma)
   out$B <- matrix(nrow = out$N, out$B)
   out$C <- diag(out$C)
