@@ -649,7 +649,7 @@ c     internal variables
       INTEGER I,J,K,INFO, IX(N*N), ITR
       DOUBLE PRECISION GRAD(N,N),TMPB(N,N), TMP(N,N), Q(N,N),
      *F,FNW,WK(7*N), S(N,N), STEP, DS(N), BOLD(N,N),
-     * UNO, ZERO, G, GNW, DIFF, COLD(N), GRADC(N)
+     * UNO, ZERO, G, GNW, DIFF, COLD(N), GRADC(N), STEPB, STEPC
 c     copy C,B,SIGMA and initialize IX 
       ITR = 0
       UNO = 1.0
