@@ -4,9 +4,18 @@
 \alias{graddsllc}
 \title{Penalized likelihood estimation of CLGGM}
 \usage{
-graddsllc(Sigma, B, C = diag(ncol(Sigma)), C0 = diag(ncol(Sigma)),
-  eps = 0.01, alpha = 0.5, beta = 0.2, maxIter = 1000,
-  lambda = 0, job = 0)
+graddsllc(
+  Sigma,
+  B,
+  C = diag(ncol(Sigma)),
+  C0 = diag(ncol(Sigma)),
+  eps = 0.01,
+  alpha = 0.5,
+  beta = 0.2,
+  maxIter = 1000,
+  lambda = 0,
+  job = 0
+)
 }
 \arguments{
 \item{Sigma}{the observed covariance matrix}
