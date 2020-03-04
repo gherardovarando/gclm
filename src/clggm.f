@@ -407,6 +407,7 @@ c     can be improved using symm
             G = G + LAMBDA * ABS(B(I,J))
  50      CONTINUE        
             G = G - LAMBDA * ABS(B(J,J))
+            F = F + 0.5 * (TMP(J,J)**2)
  60   CONTINUE
 c     main loop here, increase iteration counter
  500  CONTINUE      
@@ -463,6 +464,7 @@ c     compute FNW, objective function in new B
             DIFF = DIFF + ((B(I,J) - BOLD(I,J))**2) / (2 * STEP) + 
      *       (B(I,J) - BOLD(I,J)) * GRAD(I,J) 
  190     CONTINUE        
+            FNW = FNW + 0.5 * (TMP(J,J)**2)
             GNW = GNW - LAMBDA * ABS(B(J,J))
  200  CONTINUE
 c     BandT and line search with descent condition
