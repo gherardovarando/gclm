@@ -513,7 +513,7 @@ c
 c     INTERNAL VARIABLES
       INTEGER I,J,K,INFO,ITR
       DOUBLE PRECISION GRAD(N),TMP(N,N),Q(N,N),
-     *TMPB(N,N),F,FNW,DET(2),WK(5*N), DELTA(N,N), S(N,N), STEP,
+     *TMPB(N,N),F,FNW,WK(5*N), DELTA(N,N), S(N,N), STEP,
      *COLD(N), UNO, NG, DS(N), G, GNW, ZERO
       ITR = 0
       UNO = 1.0
@@ -643,10 +643,10 @@ c     last line of GRDDSLLC
       END
 c
       SUBROUTINE PNLLBC(N, SIGMA, B, C, CZ, LAMBDA, LAMBDAC, EPS, 
-     *                  ALPHA, BETA, MAXITR, JOB)  
+     *                  ALPHA, MAXITR, JOB)  
       INTEGER N, MAXITR, JOB
       DOUBLE PRECISION SIGMA(N,N), B(N,N), C(N), CZ(N), LAMBDA,
-     *EPS, ALPHA, BETA, LAMBDAC
+     *EPS, ALPHA, LAMBDAC
 c     internal variables
       INTEGER I,J,K,INFO, IX(N*N), ITR
       DOUBLE PRECISION GRAD(N,N),TMPB(N,N), TMP(N,N), Q(N,N),
