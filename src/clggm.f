@@ -806,16 +806,14 @@ c     terminate and save additional outputs
          ALPHA = FNW 
          EPS = (F - FNW) / ABS(F)   
          MAXITR = ITR
-         IF (RET .GT. 0) THEN
-            DO 220 J=2,N
-                 DO 210 I=1,J-1
-                    SIGMA(I,J) = S(I,J)
-                    SIGMA(J,I) = S(I,J)
- 210             CONTINUE   
-                 SIGMA(J,J) = DS(J)
- 220        CONTINUE         
-            SIGMA(1,1) = DS(1)
-         ENDIF
+         DO 220 J=2,N
+            DO 210 I=1,J-1
+               SIGMA(I,J) = S(I,J)
+               SIGMA(J,I) = S(I,J)
+ 210        CONTINUE   
+            SIGMA(J,J) = DS(J)
+ 220     CONTINUE         
+         SIGMA(1,1) = DS(1)
          GOTO 900 
       ENDIF  
       IF (MOD(JOB,10) .EQ. 1) THEN
