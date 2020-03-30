@@ -48,7 +48,7 @@
 #' X <- clyap(B, C)
 #' ## check it is a solution:
 #' max(abs(B %*% X + X %*% t(B) + C)) 
-#' @useDynLib clggm
+#' @useDynLib gclm
 #' @export
 clyap <- function(B, C, Q = NULL, all = FALSE) {
   N <- ncol(B)
@@ -62,7 +62,7 @@ clyap <- function(B, C, Q = NULL, all = FALSE) {
                   as.double(WK),
                   as.integer(0),
                   as.integer(JOB), as.integer(0),
-                  PACKAGE = "clggm")
+                  PACKAGE = "gclm")
   if (all){
     list(B = matrix(out[[2]], N, N),
          X = matrix(out[[3]], N, N), 
@@ -74,202 +74,59 @@ clyap <- function(B, C, Q = NULL, all = FALSE) {
 }
 
 
-#' Penalized likelihood estimation of CLGGM
-#' 
-#' Optimize the B matrix of a continuous Lyapunov 
-#' Gaussian graphical model (CLGGM) using proximal gradient. 
-#' \deqn{\hat{B} = \arg \min_B LL(B,C) + \lambda||B||_1}
-#' 
-#' @param Sigma the observed covariance matrix
-#' @param B an initial B matrix
-#' @param C the C matrix 
-#' @param eps convergence threshold for the proximal gradient
-#' @param alpha Beck and Tabulle line search rate
-#' @param maxIter the maximum number of iterations
-#' @param lambda penalization coefficient 
-#' @param job integer, rules to select the entries of B to be updated:
-#'            0: all entries, 1: non-zero entries at each iteration,
-#'            10: non-zero entries of initial B, 
-#'            11: starting from non-zero entries of initial B update at 
-#'            each iteration.
-#' @return a list with the output of the optimization:
-#' 
-#' * \code{N}
-#' * \code{Sigma} the covariance of the estimated CLGGM
-#' * \code{B} the estimated B matrix
-#' * \code{C}
-#' * \code{lambda} 
-#' * \code{diff} the value of the last relative decrease
-#' * \code{objective} the value of the objective function
-#' * \code{iter} number of iterations
-#' * \code{job} 
-#'         
-#' @export
-proxgradllB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
-                       alpha = 0.5, 
-                       maxIter = 1000, 
-                       lambda = 0, job = 0){
-  
- out <- .Fortran("PRXGRDLLB",as.integer(ncol(Sigma)), as.double(Sigma), 
-                 as.double(B), 
-          as.double(C), as.double(lambda), as.double(eps),
-          as.double(alpha), as.integer(maxIter),
-          as.integer(job), as.integer(1),
-          PACKAGE = "clggm")
- names(out) <- c("N", "Sigma", "B", "C", "lambda", "diff", 
-                 "objective", "iter", "job", "ret")
- out$Sigma <- matrix(nrow = out$N, out$Sigma)
- out$B <- matrix(nrow = out$N, out$B)
- out$C <- matrix(nrow = out$N, out$C)
- return(out)
-}
-
-#' Penalized likelihood estimation of CLGGM
-#' 
-#' Optimize the B matrix of a continuous Lyapunov 
-#' Gaussian graphical model (CLGGM) using proximal gradient. 
-#' \deqn{\hat{B} = \arg \min_B ||Sigma - S(B,C)||_2^2 + \lambda||B||_1}
-#' 
-#' @param Sigma the observed covariance matrix
-#' @param B an initial B matrix
-#' @param C the C matrix 
-#' @param eps convergence threshold for the proximal gradient
-#' @param alpha Beck and Tabulle line search rate
-#' @param maxIter the maximum number of iterations
-#' @param lambda penalization coefficient 
-#' @param job integer, rules to select the entries of B to be updated:
-#'            0: all entries, 1: non-zero entries at each iteration,
-#'            10: non-zero entries of initial B, 
-#'            11: starting from non-zero entries of initial B update at 
-#'            each iteration.
-#' @return a list with the output of the optimization:
-#' 
-#' * \code{N}
-#' * \code{Sigma} the covariance of the estimated CLGGM
-#' * \code{B} the estimated B matrix
-#' * \code{C}
-#' * \code{lambda} 
-#' * \code{diff} the value of the last relative decrease
-#' * \code{objective} the value of the objective function
-#' * \code{iter} number of iterations
-#' * \code{job} 
-#' 
-#' @export
-proxgradlsB <- function(Sigma, B, C = diag(ncol(Sigma)), eps =  1e-2,
-                      alpha = 0.5, 
-                      maxIter = 100, 
-                      lambda = 0, job = 0){
-  
-  out <- .Fortran("PRXGRDLSB",as.integer(ncol(Sigma)), as.double(Sigma), 
-                  as.double(B), 
-                  as.double(C), as.double(lambda), as.double(eps),
-                  as.double(alpha), as.integer(maxIter),as.integer(job),
-                  PACKAGE = "clggm")
-  names(out) <- c("N", "Sigma", "B", "C", "lambda", "diff", 
-                  "objective", "iter", "job")
-  out$Sigma <- matrix(nrow = out$N, out$Sigma)
-  out$B <- matrix(nrow = out$N, out$B)
-  out$C <- matrix(nrow = out$N, out$C)
-  return(out)
-}
-
-
-
-
-#' Penalized likelihood estimation of CLGGM
-#' 
-#' Optimize the diagonal C matrix of a continuous Lyapunov 
-#' Gaussian graphical model (CLGGM) usign gradient descent. 
-#' \deqn{\hat{C} = \arg \min_C LL(B,C) + \lambda||C - C_0||_2^2}
-#' Subject to C diagonal positive definite. 
-#' 
-#' @param Sigma the observed covariance matrix
-#' @param B an initial B matrix
-#' @param C the C matrix 
-#' @param C0 the C_0 matrix
-#' @param eps convergence threshold for the proximal gradient
-#' @param alpha backtracking parameter
-#' @param beta backtracking parameter
-#' @param maxIter the maximum number of iterations
-#' @param lambda penalization coefficient 
-#' @param job integer
-#' @return a list with the output of the optimization:
-#' 
-#' * \code{N}
-#' * \code{Sigma} the covariance of the estimated CLGGM
-#' * \code{B} 
-#' * \code{C} the estimated C matrix
-#' * \code{C0}
-#' * \code{lambda} 
-#' * \code{diff} the value of the last relative decrease
-#' * \code{objective} the value of the objective function
-#' * \code{iter} number of iterations
-#' * \code{job} 
-#' 
-#' @export
-graddsllc <- function(Sigma, B, C = diag(ncol(Sigma)),
-                      C0 = diag(ncol(Sigma)),
-                      eps =  1e-2,
-                      alpha = 0.5, 
-                      beta = 0.2,
-                      maxIter = 1000, 
-                      lambda = 0, job = 0){
-  out <- .Fortran("GRDDSLLC",as.integer(ncol(Sigma)), as.double(Sigma), as.double(B), 
-                  as.double(diag(C)), as.double(diag(C0)), as.double(lambda), 
-                  as.double(eps),
-                  as.double(alpha), as.double(beta),
-                  as.integer(maxIter),as.integer(job), 
-                  as.integer(1),
-                  PACKAGE = "clggm")
-  names(out) <- c("N", "Sigma", "B", "C", "C0", "lambda", "diff", "objective", 
-                  "beta", "iter", "job", "ret")
-  out$Sigma <- matrix(nrow = out$N, out$Sigma)
-  out$B <- matrix(nrow = out$N, out$B)
-  out$C <- diag(out$C)
-  out$C0 <- diag(out$C0)
-  return(out)
-}
-
-
 #' Penalized-likelihood estimation of CLGGM
 #' 
 #' @param Sigma empirical covariance matrix
 #' @param B initial B matrix
-#' @param C intial C matrix
-#' @param C0 penalization matrix
+#' @param C diagonal of intial C matrix
+#' @param C0 diagonal of penalization matrix
+#' @param loss one of "loglik" (default) or "frobenius"
 #' @param eps convergence tolerance 
 #' @param alpha parameter line search 
-#' @param beta parameter line search
 #' @param maxIter maximum number of iterations
-#' @param intitr number of internal iterations
 #' @param lambda penalization coefficient for B
 #' @param lambdac penalization coefficient for C
 #' @param job integer 0,1,10 or 11 
 #' @return a list with the result of the optimization
+#' @useDynLib gclm
 #' @export
-pnllbc <- function(Sigma, B, C = diag(ncol(Sigma)),
-                      C0 = diag(ncol(Sigma)),
+gclm <- function(Sigma, B = - 0.5 * diag(ncol(Sigma)), 
+                      C = rep(1, ncol(Sigma)),
+                      C0 = rep(1, ncol(Sigma)),
+                      loss = "loglik",
                       eps =  1e-2,
                       alpha = 0.5, 
-                      beta = 0.2,
                       maxIter = 100,
                       lambda = 0,
-                      lambdac = 0,  job = 0){
-  out <- .Fortran("PNLLBC",as.integer(ncol(Sigma)), as.double(Sigma), 
-                  as.double(B), 
-                  as.double(diag(C)), as.double(diag(C0)), 
-                  as.double(lambda), as.double(lambdac), 
-                  as.double(eps),
-                  as.double(alpha), as.double(beta),
-                  as.integer(maxIter),
-                  as.integer(job), 
-                  PACKAGE = "clggm")
+                      lambdac = 0,  
+                      job = 0){
+  if (loss == "loglik"){
+    out <- .Fortran("GCLMLL",as.integer(ncol(Sigma)), as.double(Sigma), 
+                    as.double(B), 
+                    as.double(C), as.double(C0), 
+                    as.double(lambda), as.double(lambdac), 
+                    as.double(eps),
+                    as.double(alpha),
+                    as.integer(maxIter),
+                    as.integer(job), 
+                    PACKAGE = "gclm")    
+  }
+  if (loss == "frobenius"){
+    out <- .Fortran("GCLMLS",as.integer(ncol(Sigma)), as.double(Sigma), 
+                    as.double(B), 
+                    as.double(C), as.double(C0), 
+                    as.double(lambda), as.double(lambdac), 
+                    as.double(eps),
+                    as.double(alpha),
+                    as.integer(maxIter),
+                    as.integer(job), 
+                    PACKAGE = "gclm")
+  }
+
   names(out) <- c("N", "Sigma", "B", "C", "C0", "lambda", "lambdac",
-                  "diff", "objective", 
-                  "beta", "iter", "job")
+                  "diff", "loss", 
+                   "iter", "job")
   out$Sigma <- matrix(nrow = out$N, out$Sigma)
   out$B <- matrix(nrow = out$N, out$B)
-  out$C <- diag(out$C)
-  out$C0 <- diag(out$C0)
   return(out)
 }
