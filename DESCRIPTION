@@ -1,15 +1,17 @@
-Package: clggm
+Package: gclm
 Type: Package
-Title: Continuous Lyapunov Gaussian Graphical Models
-Version: 0.0.1
-Author: gherardo varando
-Maintainer: gherardo varando <gherardo.varando@gmail.com>
-Description: Estimate Ornstein-Uhlenbeck process from cross sectional
-             data.
+Title: Graphical Continuous Lyapunov Models
+Version: 0.0.0.9999
+Author: Gherardo Varando
+Maintainer: Gherardo Varando <gherardo.varando@gmail.com>
+Description: Estimate covariance matrices parametrized as solutions of 
+             continuous time Lyapunov equations. 
+             Sparse coefficient matrix and diagonal noise are estimated with a proximal gradient 
+             method for a l1 penalized loss minimization problem.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Roxygen: list(markdown = TRUE)
 Imports: MASS,
          stats
