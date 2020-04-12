@@ -48,8 +48,7 @@ B <- matrix(nrow = 4, c(-4, 2,   0,  0,
                          0, -3,  1,  0,
                          0,  0, -2,  0.5,
                          0,  0,  0, -1), byrow = TRUE)
-D <- diag(c(1,2,1,2))
-C <- D %*% t(D)
+C <- diag(c(1,4,1,4))
 
 ### solve continuous Lyapunov equation 
 ### to obtain real covariance matrix
@@ -61,12 +60,26 @@ sample <- MASS::mvrnorm(n = 100, mu = rep(0,4),Sigma =  Sigma)
 
 ### Solve minimization
 
-res <- gclm(cov(sample), lambda = 0.5, lambdac = 0.01)
+res <- gclm(cov(sample), lambda = 0.3, lambdac = 0.01)
 
 res$B
 
 res$C
 ``` 
+
+The CLE can be freely multiplied by a scalar and thus the 
+\(B,C\) parametrization can be rescaled. 
+As an example we can impose \( C_{11}  = 1\) as in the true 
+\( C \) matrix, obtaining the estimators:
+
+```{r}
+C1 <- res$C / res$C[1]
+B1 <- res$B / res$C[1]
+
+B1 
+C1
+```
+
 
 #### Solutions along a regularization path
 
@@ -84,6 +97,4 @@ t(sapply(path, function(res) c(lambda = res$lambda,
 
 ## Related code
 
-- SOme inspiration from the `lyapunov` package (https://github.com/gragusa/lyapunov).
-
-- Using FORTRAN LAPACK.
+- Some inspiration is from the `lyapunov` package (https://github.com/gragusa/lyapunov).
