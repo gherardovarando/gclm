@@ -6,8 +6,9 @@ Author: Gherardo Varando
 Maintainer: Gherardo Varando <gherardo.varando@gmail.com>
 Description: Estimate covariance matrices parametrized as solutions of 
              continuous time Lyapunov equations. 
-             Sparse coefficient matrix and diagonal noise are estimated with a proximal gradient 
-             method for a l1 penalized loss minimization problem.
+             Sparse coefficient matrix and diagonal noise are estimated 
+             with a proximal gradient 
+             method for an l1 penalized loss minimization problem.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
