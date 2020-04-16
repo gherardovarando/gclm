@@ -116,6 +116,12 @@ c     copy C,B,SIGMA and initialize IX
       UNO = 1.0
       ZERO = 0.0
       STEP = 1
+      F = 0
+      G = 0 
+      H = 0
+      FNW = 0
+      GNW = 0 
+      HNW = 0
       DO 20 J = 1,N
          DO 10 I = 1,N
             IX((J-1)*N + I) = 1
@@ -316,6 +322,12 @@ c     copy C,B,SIGMA and initialize IX
       ITR = 0
       UNO = 1.0
       ZERO = 0.0
+      F = 0
+      G = 0 
+      H = 0
+      FNW = 0
+      GNW = 0 
+      HNW = 0
       DO 20 J = 1,N
          DO 10 I = 1,N
             IX((J-1)*N + I) = 1
