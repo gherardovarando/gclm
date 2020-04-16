@@ -267,7 +267,7 @@ c     descent condition
       IF ((FNW + HNW) .GT. F + H + DIFF .OR. 
      *    (FNW + GNW + HNW) .GT. (F + G + H)) THEN
          STEP = STEP * ALPHA
-         GOTO 600
+         IF (STEP .GT. 1E-20) GOTO 600
       ENDIF
 c     check stopping criteria
       IF (((F+G+H-FNW-GNW-HNW) / ABS(F+G+H) .LE. EPS).OR.
@@ -427,7 +427,7 @@ c     descent condition
       IF ((FNW + HNW) .GT. F + H + DIFF .OR. 
      *    (FNW + GNW + HNW) .GT. (F + G + H)) THEN
              STEP = STEP * ALPHA
-             GOTO 600
+             IF (STEP .GT. 1e-20) GOTO 600
       ENDIF
 c     check stopping criteria
       IF (((F+G+H-FNW-GNW-HNW) / ABS(F+G+H) .LE. EPS).OR.
