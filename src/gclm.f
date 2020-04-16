@@ -267,23 +267,12 @@ c     descent condition
       IF ((FNW + HNW) .GT. F + H + DIFF .OR. 
      *    (FNW + GNW + HNW) .GT. (F + G + H)) THEN
          STEP = STEP * ALPHA
-         IF (STEP .GT. 1E-20) GOTO 600
+         IF (STEP .LT. 1E-20) GOTO 900
+         GOTO 600
       ENDIF
 c     check stopping criteria
       IF (((F+G+H-FNW-GNW-HNW) / ABS(F+G+H) .LE. EPS).OR.
      *   (ITR .GE. MAXITR)) THEN
-c     terminate and save additional outputs
-         ALPHA = FNW 
-         EPS = (F+H+G - FNW - GNW - HNW) / ABS(F+G+H)   
-         MAXITR = ITR
-         DO 220 J=2,N
-            DO 210 I=1,J-1
-               SIGMA(I,J) = S(I,J)
-               SIGMA(J,I) = S(I,J)
- 210        CONTINUE   
-            SIGMA(J,J) = DS(J)
- 220     CONTINUE         
-         SIGMA(1,1) = DS(1)
          GOTO 900 
       ENDIF  
       IF (MOD(JOB,10) .EQ. 1) THEN
@@ -299,6 +288,18 @@ c     update value of objective function and repeat
       H = HNW
       GOTO 500
  900  CONTINUE
+c     terminate and save additional outputs
+         ALPHA = FNW 
+         EPS = (F+H+G - FNW - GNW - HNW) / ABS(F+G+H)   
+         MAXITR = ITR
+         DO 220 J=2,N
+            DO 210 I=1,J-1
+               SIGMA(I,J) = S(I,J)
+               SIGMA(J,I) = S(I,J)
+ 210        CONTINUE   
+            SIGMA(J,J) = DS(J)
+ 220     CONTINUE         
+         SIGMA(1,1) = DS(1)
       RETURN
       END
       SUBROUTINE GCLMLS(N, SIGMA, B, C, CZ, LAMBDA, LAMBDAC, EPS, 
@@ -427,20 +428,12 @@ c     descent condition
       IF ((FNW + HNW) .GT. F + H + DIFF .OR. 
      *    (FNW + GNW + HNW) .GT. (F + G + H)) THEN
              STEP = STEP * ALPHA
-             IF (STEP .GT. 1e-20) GOTO 600
+             IF (STEP .LT. 1e-20) GOTO 900
+             GOTO 600
       ENDIF
 c     check stopping criteria
       IF (((F+G+H-FNW-GNW-HNW) / ABS(F+G+H) .LE. EPS).OR.
      *   (ITR .GE. MAXITR)) THEN
-c     terminate and save additional outputs
-         ALPHA = FNW 
-         EPS = (F+H+G - FNW - GNW - HNW) / ABS(F+G+H)   
-         MAXITR = ITR
-         DO 220 J=1,N
-            DO 210 I=1,N
-               SIGMA(I,J) = S(I,J)
- 210        CONTINUE   
- 220     CONTINUE         
          GOTO 900 
       ENDIF  
       IF (MOD(JOB,10) .EQ. 1) THEN
@@ -456,5 +449,14 @@ c     update value of objective function and repeat
       H = HNW
       GOTO 500
  900  CONTINUE
+c     terminate and save additional outputs
+         ALPHA = FNW 
+         EPS = (F+H+G - FNW - GNW - HNW) / ABS(F+G+H)   
+         MAXITR = ITR
+         DO 220 J=1,N
+            DO 210 I=1,N
+               SIGMA(I,J) = S(I,J)
+ 210        CONTINUE   
+ 220     CONTINUE         
       RETURN
       END
