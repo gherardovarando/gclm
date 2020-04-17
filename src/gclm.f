@@ -189,6 +189,7 @@ c     copy old B before starting line search
       STEPC = 1
 c     line search loop here
   600 CONTINUE     
+      IF (STEP*STEPB .LT. 1E-20) GOTO 900
 c     gradient step
       DO 110 J = 1,N
          DO 100 I = 1,N
@@ -375,6 +376,7 @@ c     copy old B before starting line search
       STEPC = 1
 c     line search loop here
   600 CONTINUE     
+      IF (STEP * STEPB .LT. 1E-20) GOTO 900
 c     gradient step
       DO 110 J = 1,N
          DO 100 I = 1,N
