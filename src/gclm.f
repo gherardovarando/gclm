@@ -189,7 +189,6 @@ c     copy old B before starting line search
       STEPC = 1
 c     line search loop here
   600 CONTINUE     
-      IF (STEP*STEPB .LT. 1E-20) GOTO 900
 c     gradient step
       DO 110 J = 1,N
          DO 100 I = 1,N
@@ -207,8 +206,8 @@ c     soft thresholding
       DO 130 J =1,N
          DO 120 I=1,N
             IF (I .NE. J .AND. IX((J-1)*N + I) .EQ. 1) THEN
-              B(I,J) = SIGN(UNO,B(I,J))*(ABS(B(I,J))-STEP*LAMBDA) 
-              IF (ABS(B(I,J)) .LT. STEP*LAMBDA) THEN
+              B(I,J) = SIGN(UNO,B(I,J))*(ABS(B(I,J))-STEP*STEPB*LAMBDA) 
+              IF (ABS(B(I,J)) .LT. STEP*STEPB*LAMBDA) THEN
                  B(I,J) = 0
               ENDIF
             ENDIF
@@ -250,31 +249,31 @@ c     compute FNW, objective function in new B
             FNW = FNW + 
      *          2*S(I,J)*SIGMA(I,J)              
             GNW = GNW + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) 
-             DIFF = DIFF+((B(I,J)-BOLD(I,J))**2)/(2 *STEP) +  
-     *       (B(I,J) - BOLD(I,J)) * DB(I,J) * STEPB + 
-     *       ((B(J,I) - BOLD(J,I))**2) / (2*STEP) + 
-     *       (B(J,I) - BOLD(J,I)) * DB(J,I) * STEPB  
+             DIFF = DIFF+((B(I,J)-BOLD(I,J))**2)/(2 *STEP * STEPB) +  
+     *       (B(I,J) - BOLD(I,J)) * DB(I,J) + 
+     *       ((B(J,I) - BOLD(J,I))**2) / (2*STEP* STEPB) + 
+     *       (B(J,I) - BOLD(J,I)) * DB(J,I)   
  170     CONTINUE        
          FNW = FNW + S(J,J) * SIGMA(J,J)
-         DIFF = DIFF + ((B(J,J) - BOLD(J,J))**2)/(2*STEP) +  
-     *          (B(J,J) - BOLD(J,J)) * DB(J,J) * STEPB
+         DIFF = DIFF + ((B(J,J) - BOLD(J,J))**2)/(2*STEP*STEPB) +  
+     *          (B(J,J) - BOLD(J,J)) * DB(J,J) 
          IF (LAMBDAC .GE. 0) THEN 
-            DIFF = DIFF + ((C(J) - COLD(J))**2)/(2*STEP) +
-     *                    (C(J) - COLD(J)) * DC(J) * STEPC 
+            DIFF = DIFF + ((C(J) - COLD(J))**2)/(2*STEP*STEPC) +
+     *                    (C(J) - COLD(J)) * DC(J)  
          ENDIF
  180  CONTINUE
       FNW = FNW + S(N,N) * SIGMA(N,N)
-      DIFF = DIFF + ((B(N,N) - BOLD(N,N))**2) / (2*STEP) + 
-     *       (B(N,N) - BOLD(N,N)) * DB(N,N) * STEPB 
+      DIFF = DIFF + ((B(N,N) - BOLD(N,N))**2) / (2*STEP* STEPB) + 
+     *       (B(N,N) - BOLD(N,N)) * DB(N,N)  
       IF (LAMBDAC .GE. 0) THEN 
-         DIFF = DIFF + ((C(N) - COLD(N))**2)/(2*STEP) +
-     *                 (C(N) - COLD(N)) * DC(N) *STEPC 
+         DIFF = DIFF + ((C(N) - COLD(N))**2)/(2*STEP *STEPC) +
+     *                 (C(N) - COLD(N)) * DC(N) 
       ENDIF
 c     descent condition
       IF ((FNW + HNW) .GT. F + H + DIFF .OR. 
      *    (FNW + GNW + HNW) .GT. (F + G + H)) THEN
          STEP = STEP * ALPHA
-         IF (STEP .LT. 1E-20) GOTO 900
+         IF (STEP .LE. 0) GOTO 900
          GOTO 600
       ENDIF
 c     check stopping criteria
@@ -376,7 +375,6 @@ c     copy old B before starting line search
       STEPC = 1
 c     line search loop here
   600 CONTINUE     
-      IF (STEP * STEPB .LT. 1E-20) GOTO 900
 c     gradient step
       DO 110 J = 1,N
          DO 100 I = 1,N
@@ -394,8 +392,8 @@ c     soft thresholding
       DO 130 J =1,N
          DO 120 I=1,N
             IF (I .NE. J .AND. IX((J-1)*N + I) .EQ. 1) THEN
-              B(I,J) = SIGN(UNO,B(I,J))*(ABS(B(I,J))-STEP*LAMBDA) 
-              IF (ABS(B(I,J)) .LT. STEP*LAMBDA) THEN
+              B(I,J) = SIGN(UNO,B(I,J))*(ABS(B(I,J))-STEP*STEPB*LAMBDA) 
+              IF (ABS(B(I,J)) .LT. STEP*STEPB*LAMBDA) THEN
                  B(I,J) = 0
               ENDIF
             ENDIF
@@ -425,8 +423,8 @@ c     compute objective function in new B,C
             TMP(I,J) = SIGMA(I,J) - S(I,J)
             FNW = FNW + 0.5 * (TMP(I,J)**2)            
             GNW = GNW + LAMBDA * ABS(B(I,J)) 
-             DIFF = DIFF +((B(I,J)-BOLD(I,J))**2)/(2*STEP)+  
-     *       (B(I,J) - BOLD(I,J)) * DB(I,J) * STEPB
+             DIFF = DIFF +((B(I,J)-BOLD(I,J))**2)/(2*STEP* STEPB)+  
+     *       (B(I,J) - BOLD(I,J)) * DB(I,J) 
  170     CONTINUE        
 c            FNW = FNW + 0.5 * (TMP(J,J)**2)            
 c            TMP(J,J) = 0.5 * TMP(J,J) 
@@ -434,15 +432,15 @@ c            TMP(J,J) = 0.5 * TMP(J,J)
             IF (LAMBDAC .GE. 0) THEN 
                HNW = HNW + LAMBDAC*(C(J) - CZ(J))**2
                DIFF = DIFF +   
-     *                ((C(J) - COLD(J))**2)/(2*STEP)
-     *                + (C(J) - COLD(J)) * DC(J) * STEPC
+     *                ((C(J) - COLD(J))**2)/(2*STEP * STEPC)
+     *                + (C(J) - COLD(J)) * DC(J)
             ENDIF
  180  CONTINUE
 c     descent condition
       IF ((FNW + HNW) .GT. F + H + DIFF .OR. 
      *    (FNW + GNW + HNW) .GT. (F + G + H)) THEN
              STEP = STEP * ALPHA
-             IF (STEP .LT. 1e-20) GOTO 900
+             IF (STEP .LE. 0) GOTO 900
              GOTO 600
       ENDIF
 c     check stopping criteria
