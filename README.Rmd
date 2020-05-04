@@ -28,14 +28,8 @@ a fixed diagonal matrix \( C_0 \) (usually the identity).
 ## Installation 
 
 ```{r, eval = FALSE}
-#devtools::install_github("gherardovarando/gclm")
+devtools::install_github("gherardovarando/gclm")
 ```
-
-### Dependencies 
-
-- `MASS`
-- `stats` 
-- `testthat` (only in dev)
 
 
 ## Usage

@@ -38,7 +38,7 @@ gclm.path(
 
 \item{loss}{one of "loglik" (default) or "frobenius"}
 
-\item{eps}{convergence tolerance}
+\item{eps}{convergence threshold}
 
 \item{alpha}{parameter line search}
 

@@ -277,7 +277,7 @@ c     descent condition
          GOTO 600
       ENDIF
 c     check stopping criteria
-      IF (((F+G+H-FNW-GNW-HNW) / ABS(F+G+H) .LE. EPS).OR.
+      IF (((F+G+H-FNW-GNW-HNW)  .LE. EPS).OR.
      *   (ITR .GE. MAXITR)) THEN
          GOTO 900 
       ENDIF  
@@ -296,7 +296,7 @@ c     update value of objective function and repeat
  900  CONTINUE
 c     terminate and save additional outputs
          ALPHA = FNW 
-         EPS = (F+H+G - FNW - GNW - HNW) / ABS(F+G+H)   
+         EPS = (F+H+G - FNW - GNW - HNW)  
          MAXITR = ITR
          DO 220 J=2,N
             DO 210 I=1,J-1
@@ -444,7 +444,7 @@ c     descent condition
              GOTO 600
       ENDIF
 c     check stopping criteria
-      IF (((F+G+H-FNW-GNW-HNW) / ABS(F+G+H) .LE. EPS).OR.
+      IF (((F+G+H-FNW-GNW-HNW) .LE. EPS).OR.
      *   (ITR .GE. MAXITR)) THEN
          GOTO 900 
       ENDIF  
@@ -463,7 +463,7 @@ c     update value of objective function and repeat
  900  CONTINUE
 c     terminate and save additional outputs
          ALPHA = FNW 
-         EPS = (F+H+G - FNW - GNW - HNW) / ABS(F+G+H)   
+         EPS = (F+H+G - FNW - GNW - HNW) 
          MAXITR = ITR
          DO 220 J=1,N
             DO 210 I=1,N

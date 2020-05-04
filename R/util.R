@@ -1,29 +1,9 @@
-#' Minus Log-Likelihood for Gaussian model
-#'
-#' @param P the inverse of the covariance matrix
-#' @param S the empirical covariance
-#'
-#' @importFrom stats var
-#' @export
-mll <- function(P, S){
- -determinant(P, logarithm = TRUE)$modulus + sum(S * P)
-}
 
-#' Minus log-likelihood for the invariant distribution of OU
-#'
-#' @param B coefficent matrix
-#' @param S covariance matrix
-#' @param C noise matrix
-#'
-#' @export
-mllB <- function(B, S, C = diag(nrow(B))){
-  P <- solve(clyap(B, C))
-  mll(P, S)
-}
-
-
-
-
+#' Anti transpose (internal)
+#' 
+#' @param m square matrix
+#' @return the anti traspose of \code{m}
+#' @keywords internal
 anti_t <- function (m){
   p <- nrow(m)
   j <- matrix(ncol = p, nrow = p, data = 0)

@@ -81,7 +81,7 @@ clyap <- function(B, C, Q = NULL, all = FALSE) {
 #' @param C diagonal of intial C matrix
 #' @param C0 diagonal of penalization matrix
 #' @param loss one of "loglik" (default) or "frobenius"
-#' @param eps convergence tolerance 
+#' @param eps convergence threshold
 #' @param alpha parameter line search 
 #' @param maxIter maximum number of iterations
 #' @param lambda penalization coefficient for B
