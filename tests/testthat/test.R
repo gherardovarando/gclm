@@ -1,4 +1,5 @@
 context("gclm optimization")
+library(gclm)
 
 test_that("Optimization fast if initialized in optimum (loglik)", {
   ## generate random stable matrix
