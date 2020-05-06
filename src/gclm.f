@@ -14,6 +14,11 @@ c     performed.
 c     IF JOB .GE. 2 the solution is not back-tranformed with the
 c     orthogonal matrix Q, thus QXQ**T is actually returned.
 c     internal variables
+c   
+c     lapck subroutine used 
+c     DGEES
+c     DTRSYL
+c     DGEMM
       INTEGER K,SDIM, UNO,INDR,INDI,INDW
       LOGICAL BWORK(N)
       CHARACTER TRANA, TRANB

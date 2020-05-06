@@ -1,7 +1,7 @@
 Package: gclm
 Type: Package
 Title: Graphical Continuous Lyapunov Models
-Version: 0.0.0.9999
+Version: 0.0.1
 Author: Gherardo Varando
 Maintainer: Gherardo Varando <gherardo.varando@gmail.com>
 Description: Estimate covariance matrices parametrized as solutions of 

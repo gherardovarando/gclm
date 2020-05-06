@@ -3,7 +3,7 @@
 \name{gclm}
 \alias{gclm}
 \alias{gclm.path}
-\title{Penalized-likelihood estimation of CLGGM}
+\title{l1 penalized loss estimation for GCLM}
 \usage{
 gclm(
   Sigma,
@@ -28,7 +28,7 @@ gclm.path(
 )
 }
 \arguments{
-\item{Sigma}{empirical covariance matrix}
+\item{Sigma}{covariance matrix}
 
 \item{B}{initial B matrix}
 
@@ -55,8 +55,39 @@ gclm.path(
 \item{...}{additional arguments passed to \code{gclm}}
 }
 \value{
-a list with the result of the optimization
+for \code{gclm}: a list with the result of the optimization
+
+for \code{gclm.path}: a list of the same lenght of
+\code{lambdas} with the results of the optimization for
+the different \code{lambda} values
 }
 \description{
-Penalized-likelihood estimation of CLGGM
+Estimates a sparse continuous time Lyapunov
+parametrization of a covariance matrix using a lasso
+(L1) penalty.
+}
+\details{
+\code{gclm} performs proximal gradient descent for the optimization problem
+\deqn{argmin L(\Sigma(B,C)) + \lambda \rho(B) + \lambda_C ||C - C0||_F^2}
+subject to \eqn{B} stable and \eqn{C} diagonal, where \eqn{\rho(B)} is the l1 norm
+of the off-diagonal elemnt of \eqn{B}.
+
+\code{gclm.path} simply calls iteratively \code{gclm}
+with different \code{lambda} values. Warm start is used, that
+is in the ith call to \code{gclm} the \code{B} and \code{C}
+matrices are initialized as the one obtained in the (i-1)th
+call.
+}
+\examples{
+x <- matrix(rnorm(50*20),ncol=20)
+S <- cov(x)
+
+## l1 penalized log-likelihood
+res <- gclm(S, eps = 0, lambda = 0.1, lambdac = 0.01)
+
+## l1 penalized log-likelihood with fixed C
+res <- gclm(S, eps = 0, lambda = 0.1, lambdac = -1)
+
+## l1 penalized frobenius loss
+res <- gclm(S, eps = 0, lambda = 0.1, loss = "frobenius")
 }
