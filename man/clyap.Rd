@@ -44,12 +44,7 @@ are obtained by a first call to \code{clyap(B, C, all = TRUE)}
 \itemize{
 \item \code{DGEES}
 \item \code{DTRSYL}
-}
-
-Moreover, some additional subroutines are used from:
-\itemize{
-\item Algorithm 705; a FORTRAN-77 software package for
-solving the Sylvester matrix equation AXBT + CXDT = E
+\item \code{DGEMM}
 }
 }
 \examples{
@@ -58,6 +53,6 @@ B <- matrix(data = rnorm(9), nrow = 3)
 diag(B) <- - 3 * max(B) 
 C <- diag(runif(3))
 X <- clyap(B, C)
-## check it is a solution:
+## check X is a solution:
 max(abs(B \%*\% X + X \%*\% t(B) + C)) 
 }
