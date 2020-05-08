@@ -1,4 +1,4 @@
 library("testthat")
-library("clggm")
+library("gclm")
 
-test_check("clggm")
+test_check("gclm")
