@@ -12,7 +12,7 @@ clyap(B, C, Q = NULL, all = FALSE)
 \item{C}{Square matrix}
 
 \item{Q}{Square matrix, the orthogonal matrix used
-to transfrom the original equation}
+to transform the original equation}
 
 \item{all}{logical}
 }

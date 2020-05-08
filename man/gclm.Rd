@@ -32,7 +32,7 @@ gclm.path(
 
 \item{B}{initial B matrix}
 
-\item{C}{diagonal of intial C matrix}
+\item{C}{diagonal of initial C matrix}
 
 \item{C0}{diagonal of penalization matrix}
 
@@ -57,7 +57,7 @@ gclm.path(
 \value{
 for \code{gclm}: a list with the result of the optimization
 
-for \code{gclm.path}: a list of the same lenght of
+for \code{gclm.path}: a list of the same length of
 \code{lambdas} with the results of the optimization for
 the different \code{lambda} values
 }
@@ -70,11 +70,11 @@ parametrization of a covariance matrix using a lasso
 \code{gclm} performs proximal gradient descent for the optimization problem
 \deqn{argmin L(\Sigma(B,C)) + \lambda \rho(B) + \lambda_C ||C - C0||_F^2}
 subject to \eqn{B} stable and \eqn{C} diagonal, where \eqn{\rho(B)} is the l1 norm
-of the off-diagonal elemnt of \eqn{B}.
+of the off-diagonal element of \eqn{B}.
 
 \code{gclm.path} simply calls iteratively \code{gclm}
 with different \code{lambda} values. Warm start is used, that
-is in the ith call to \code{gclm} the \code{B} and \code{C}
+is in the i-th call to \code{gclm} the \code{B} and \code{C}
 matrices are initialized as the one obtained in the (i-1)th
 call.
 }

@@ -9,7 +9,7 @@
 #' @param B Square matrix
 #' @param C Square matrix
 #' @param Q Square matrix, the orthogonal matrix used 
-#' to transfrom the original equation
+#' to transform the original equation
 #' @param all logical
 #' 
 #' @return The solution matrix \code{X} if \code{all = FALSE}. If 
@@ -77,7 +77,7 @@ clyap <- function(B, C, Q = NULL, all = FALSE) {
 #' 
 #' @param Sigma covariance matrix
 #' @param B initial B matrix
-#' @param C diagonal of intial C matrix
+#' @param C diagonal of initial C matrix
 #' @param C0 diagonal of penalization matrix
 #' @param loss one of "loglik" (default) or "frobenius"
 #' @param eps convergence threshold
@@ -91,7 +91,7 @@ clyap <- function(B, C, Q = NULL, all = FALSE) {
 #' \code{gclm} performs proximal gradient descent for the optimization problem
 #' \deqn{argmin L(\Sigma(B,C)) + \lambda \rho(B) + \lambda_C ||C - C0||_F^2}
 #' subject to \eqn{B} stable and \eqn{C} diagonal, where \eqn{\rho(B)} is the l1 norm 
-#' of the off-diagonal elemnt of \eqn{B}.
+#' of the off-diagonal element of \eqn{B}.
 #' @useDynLib gclm
 #' @examples 
 #' x <- matrix(rnorm(50*20),ncol=20)
@@ -151,12 +151,12 @@ gclm <- function(Sigma, B = - 0.5 * diag(ncol(Sigma)),
 #' @rdname gclm
 #' @param lambdas sequence of lambda
 #' @param ... additional arguments passed to \code{gclm}
-#' @return for \code{gclm.path}: a list of the same lenght of
+#' @return for \code{gclm.path}: a list of the same length of
 #'         \code{lambdas} with the results of the optimization for 
 #'         the different \code{lambda} values
 #' @details \code{gclm.path} simply calls iteratively \code{gclm}
 #' with different \code{lambda} values. Warm start is used, that 
-#' is in the ith call to \code{gclm} the \code{B} and \code{C} 
+#' is in the i-th call to \code{gclm} the \code{B} and \code{C} 
 #' matrices are initialized as the one obtained in the (i-1)th
 #' call.    
 #' @export
