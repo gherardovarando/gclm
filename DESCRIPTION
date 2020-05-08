@@ -9,11 +9,11 @@ Authors@R: c(
 	person(given = "Niels Richard", family = "Hansen",  role = "aut",
 	       comment = c(ORCID = "0000-0003-3883-365X"))
 	)
-Description: Estimate covariance matrices parametrized as solutions of 
+Description: Estimation of covariance matrices as solutions of 
              continuous time Lyapunov equations. 
              Sparse coefficient matrix and diagonal noise are estimated 
              with a proximal gradient 
-             method for an l1 penalized loss minimization problem.
+             method for an l1-penalized loss minimization problem.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -21,6 +21,4 @@ RoxygenNote: 7.1.0
 Roxygen: list(markdown = TRUE)
 URL: https://github.com/gherardovarando/gclm
 BugReports: https://github.com/gherardovarando/gclm/issues
-Imports: MASS,
-         stats
 Suggests: testthat

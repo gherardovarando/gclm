@@ -2,7 +2,7 @@
 #' Anti transpose (internal)
 #' 
 #' @param m square matrix
-#' @return the anti traspose of \code{m}
+#' @return the anti transpose of \code{m}
 #' @keywords internal
 anti_t <- function (m){
   p <- nrow(m)

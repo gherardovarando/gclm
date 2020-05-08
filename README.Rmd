@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # gclm
 
-`gclm` contatins methods to estimate a sparse parametrization 
+`gclm` contains methods to estimate a sparse parametrization 
 of covariance matrix as solution of a continuous time Lyapunov 
 equation (CLE): 
 

@@ -10,7 +10,7 @@ anti_t(m)
 \item{m}{square matrix}
 }
 \value{
-the anti traspose of \code{m}
+the anti transpose of \code{m}
 }
 \description{
 Anti transpose (internal)
