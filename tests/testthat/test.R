@@ -1,5 +1,4 @@
 context("gclm optimization")
-library(gclm)
 
 test_that("clyap obtain the solution",{
   ## generate random stable matrix
