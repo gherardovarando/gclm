@@ -1,6 +1,9 @@
 ## gclm 0.0.1
 
-First tagged version, preparing CRAN submission
+Re-submission to CRAN 
+
+* Added reference to arxiv preprint in DESCRIPTION.
+* Added `"cph"` in Authors@R 
 
 There are notes on some checks below:
 

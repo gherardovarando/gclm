@@ -3,7 +3,7 @@ Type: Package
 Title: Graphical Continuous Lyapunov Models
 Version: 0.0.1
 Authors@R: c(
-  person(given = "Gherardo", family = "Varando", role = c("aut", "cre"),
+  person(given = "Gherardo", family = "Varando", role = c("aut", "cre", "cph"),
   email = "gherardo.varando@gmail.com", 
 	comment = c(ORCID = "0000-0002-6708-1103")),
 	person(given = "Niels Richard", family = "Hansen",  role = "aut",
@@ -14,6 +14,7 @@ Description: Estimation of covariance matrices as solutions of
              Sparse coefficient matrix and diagonal noise are estimated 
              with a proximal gradient 
              method for an l1-penalized loss minimization problem.
+             Varando G, Hansen NR (2020) <arXiv:2005.10483>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
