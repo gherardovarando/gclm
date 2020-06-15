@@ -8,6 +8,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # gclm
 
+This package contains the implementation of the algorithm in 
+
+Varando G, Hansen NR (2020) [Graphical continuous Lyapunov models](https://arxiv.org/abs/2005.10483) 
+
 `gclm` contains methods to estimate a sparse parametrization 
 of covariance matrix as solution of a continuous time Lyapunov 
 equation (CLE): 
@@ -25,9 +29,14 @@ elements of \(B\) and \(||C - C_0||^2_F \) is the
 squared frobenius norm of the difference between \(C\) and 
 a fixed diagonal matrix \( C_0 \) (usually the identity).
 
+
+
 ## Installation 
 
 ```{r, eval = FALSE}
+## version on CRAN
+install.packages("gclm")
+## development version from github
 devtools::install_github("gherardovarando/gclm")
 ```
 
@@ -38,10 +47,10 @@ devtools::install_github("gherardovarando/gclm")
 library(gclm)
 
 ### define coefficient matrices
-B <- matrix(nrow = 4, c(-4, 2,   0,  0, 
-                         0, -3,  1,  0,
-                         0,  0, -2,  0.5,
-                         0,  0,  0, -1), byrow = TRUE)
+B <- matrix(nrow = 4, c(-4,  2,  0,   0, 
+                         0, -3,  1,   0,
+                         0,  0, -2, 0.5,
+                         0,  0,  0,  -1), byrow = TRUE)
 C <- diag(c(1,4,1,4))
 
 ### solve continuous Lyapunov equation 
@@ -49,12 +58,12 @@ C <- diag(c(1,4,1,4))
 Sigma <- clyap(B, C) 
 
 ### obtain observations 
-sample <- MASS::mvrnorm(n = 100, mu = rep(0,4),Sigma =  Sigma)
+sample <- MASS::mvrnorm(n = 1000, mu = rep(0,4), Sigma =  Sigma)
 
 
 ### Solve minimization
 
-res <- gclm(cov(sample), lambda = 0.3, lambdac = 0.01)
+res <- gclm(cov(sample), lambda = 0.4, lambdac = 0.01)
 
 res$B
 
@@ -78,7 +87,8 @@ C1
 #### Solutions along a regularization path
 
 ```{r}
-path <- gclm.path(cov(sample), lambdac = 0.01)
+path <- gclm.path(cov(sample), lambdac = 0.01, 
+                  lambdas = 10^seq(0, -3, length = 10))
 t(sapply(path, function(res) c(lambda = res$lambda, 
                                 npar = sum(res$B!=0),
                                 fp = sum(res$B!=0 & B==0),
