@@ -1,0 +1,9 @@
+bibentry(bibtype = "Inproceedings",
+  title        = "Graphical continuous Lyapunov models",
+  author       = c(person(given = "Gherardo", family = "Varando"),
+                   person(given = "Niels Richard", family = "Hansen")),
+  booktitle = "UAI 2020)",
+  year         = "2020",
+  note = "accepted", 
+  url = "arxiv.org/abs/2005.10483" 
+)
