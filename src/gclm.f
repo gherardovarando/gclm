@@ -254,25 +254,25 @@ c     compute FNW, objective function in new B
             FNW = FNW + 
      *          2*S(I,J)*SIGMA(I,J)              
             GNW = GNW + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) 
-             DIFF = DIFF+((B(I,J)-BOLD(I,J))**2)/(2 *STEP * STEPB) +  
-     *       (B(I,J) - BOLD(I,J)) * DB(I,J) + 
-     *       ((B(J,I) - BOLD(J,I))**2) / (2*STEP* STEPB) + 
+             DIFF = DIFF+((B(I,J)-BOLD(I,J))**2)/(2*STEP*STEPB) +  
+     *       (B(I,J) - BOLD(I,J)) * DB(I,J)+ 
+     *       ((B(J,I) - BOLD(J,I))**2) / (2*STEP*STEPB) + 
      *       (B(J,I) - BOLD(J,I)) * DB(J,I)   
  170     CONTINUE        
          FNW = FNW + S(J,J) * SIGMA(J,J)
          DIFF = DIFF + ((B(J,J) - BOLD(J,J))**2)/(2*STEP*STEPB) +  
-     *          (B(J,J) - BOLD(J,J)) * DB(J,J) 
+     *          (B(J,J) - BOLD(J,J)) * DB(J,J)
          IF (LAMBDAC .GE. 0) THEN 
             DIFF = DIFF + ((C(J) - COLD(J))**2)/(2*STEP*STEPC) +
-     *                    (C(J) - COLD(J)) * DC(J)  
+     *                    (C(J) - COLD(J)) * DC(J)
          ENDIF
  180  CONTINUE
       FNW = FNW + S(N,N) * SIGMA(N,N)
-      DIFF = DIFF + ((B(N,N) - BOLD(N,N))**2) / (2*STEP* STEPB) + 
-     *       (B(N,N) - BOLD(N,N)) * DB(N,N)  
+      DIFF = DIFF + ((B(N,N) - BOLD(N,N))**2) / (2*STEP*STEPB) + 
+     *       (B(N,N) - BOLD(N,N)) * DB(N,N)
       IF (LAMBDAC .GE. 0) THEN 
-         DIFF = DIFF + ((C(N) - COLD(N))**2)/(2*STEP *STEPC) +
-     *                 (C(N) - COLD(N)) * DC(N) 
+         DIFF = DIFF + ((C(N) - COLD(N))**2)/(2*STEP*STEPC) +
+     *                 (C(N) - COLD(N)) * DC(N)
       ENDIF
 c     descent condition
       IF ((FNW + HNW) .GT. F + H + DIFF .OR. 
