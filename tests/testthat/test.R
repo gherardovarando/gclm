@@ -1,6 +1,6 @@
 context("gclm optimization")
 
-test_that("clyap obtain the solution",{
+test_that("clyap obtains the solution",{
   ## generate random stable matrix
   B <- matrix(nrow = 10, ncol = 10, rnorm(100))
   diag(B) <- apply(B, MARGIN = 1, function(x) -sum(abs(x)))
