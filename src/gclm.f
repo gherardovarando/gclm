@@ -254,7 +254,7 @@ c     compute FNW, objective function in new B
             FNW = FNW + 
      *          2*S(I,J)*SIGMA(I,J)              
             GNW = GNW + LAMBDA * (ABS(B(I,J)) + ABS(B(J,I))) 
-             DIFF = DIFF+((B(I,J)-BOLD(I,J))**2)/(2*STEP*STEPB) +  
+            DIFF = DIFF+((B(I,J)-BOLD(I,J))**2)/(2*STEP*STEPB) +  
      *       (B(I,J) - BOLD(I,J)) * DB(I,J)+ 
      *       ((B(J,I) - BOLD(J,I))**2) / (2*STEP*STEPB) + 
      *       (B(J,I) - BOLD(J,I)) * DB(J,I)   
