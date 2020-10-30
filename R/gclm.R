@@ -202,18 +202,20 @@ gclm.lowertri <- function(Sigma,
   b <- blong[1:(p-1)]
   w <- l[[1]] %*% b
   t <- p
-  for (i in 2:length(l)){
-    b <- blong[t:(t + p - i - 1)]
-    t <- t + p - i
-    AA <- matrix(nrow = length(b), ncol = length(w), 0)
-    for (j in (i+1):p){
-      for (k in 1:(i-1)){
-        ix <- (k - 1) * p - (k - 1) * k / 2 + (i - k)
-        AA[j - i, ix] <-  P[k, j]
+  if (length(l) > 1){
+    for (i in 2:length(l)){
+      b <- blong[t:(t + p - i - 1)]
+      t <- t + p - i
+      AA <- matrix(nrow = length(b), ncol = length(w), 0)
+      for (j in (i+1):p){
+        for (k in 1:(i-1)){
+          ix <- (k - 1) * p - (k - 1) * k / 2 + (i - k)
+          AA[j - i, ix] <-  P[k, j]
+        }
       }
-    }
-    b <- b + tcrossprod(AA, t(w) )
-    w <- c(w, l[[i]] %*% b)
+      b <- b + tcrossprod(AA, t(w))
+      w <- c(w, l[[i]] %*% b)
+    } 
   }
   W <- matrix(nrow = p, ncol = p, 0)
   W[upper.tri(W)] <- w[length(w) : 1]
