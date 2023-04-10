@@ -1,26 +1,43 @@
 
 # gclm
 
-This package contains the implementation of the algorithm in
+This package contains the implementation of the algorithms in
 
-Varando G, Hansen NR (2020) [Graphical continuous Lyapunov
-models](https://arxiv.org/abs/2005.10483)
+Varando G, Hansen NR [Graphical continuous Lyapunov
+models, UAI (2020)](https://proceedings.mlr.press/v124/varando20a.html)
+
+```
+@InProceedings{pmlr-v124-varando20a, 
+title = {Graphical continuous {L}yapunov models}, 
+author = {Varando, Gherardo and Richard Hansen, Niels}, 
+booktitle = {Proceedings of the 36th Conference on Uncertainty in Artificial Intelligence (UAI)}, 
+pages = {989--998}, 
+year = {2020}, 
+editor = {Peters, Jonas and Sontag, David}, 
+volume = {124}, 
+series = {Proceedings of Machine Learning Research}, 
+month = {03--06 Aug}, 
+publisher = {PMLR}, 
+pdf = {http://proceedings.mlr.press/v124/varando20a/varando20a.pdf}, 
+url = {https://proceedings.mlr.press/v124/varando20a.html} 
+}
+```
 
 `gclm` contains methods to estimate a sparse parametrization of
 covariance matrix as solution of a continuous time Lyapunov equation
 (CLE):
 
-\[ B\Sigma + \Sigma B^t + C = 0 \]
+$$B\Sigma + \Sigma B^t + C = 0$$
 
-Solving the following \(\ell_1\) penalized loss minimization
+Solving the following $\ell_1$ penalized loss minimization
 problem:
 
-\[ \arg\min L(\Sigma(B,C)) + \lambda \rho_1(B) + \lambda_C ||C - C_0||^2_F   \]
+$$\arg\min L(\Sigma(B,C)) + \lambda \rho_1(B) + \lambda_C ||C - C_0||^2_F$$
 
-subject to \(B\) stable and \(C\) diagonal, where \(\rho_1(B)\) is the
-\(\ell_1\) norm of the off-diagonal elements of \(B\) and
-\(||C - C_0||^2_F\) is the squared frobenius norm of the difference
-between \(C\) and a fixed diagonal matrix \(C_0\) (usually the
+subject to $B$ stable and $C$ diagonal, where $\rho_1(B)$ is the
+$\ell_1$ norm of the off-diagonal elements of $B$ and
+$||C - C_0||^2_F$ is the squared frobenius norm of the difference
+between $C$ and a fixed diagonal matrix $C_0$ (usually the
 identity).
 
 ## Installation
